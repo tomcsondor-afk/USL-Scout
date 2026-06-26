@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>USL 2026 Scout Terminal</title>
+<style>
+:root{
+  --paper:#eceae3; --panel:#f6f5f0; --ink:#15211d; --ink2:#46524d;
+  --line:#d4d0c5; --line2:#c2bdb0;
+  --pitch:#0f5d3f; --pitch-bright:#1c7a55; --amber:#c8862b;
+  --hi:#163a2c;
+  --good:#1f8a55; --mid:#d8a23a; --bad:#bf3b3b;
+  --shadow:0 1px 0 rgba(0,0,0,.04), 0 8px 28px rgba(20,30,25,.10);
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:13px;-webkit-font-smoothing:antialiased}
+.app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* ---- masthead ---- */
+.mast{padding:14px 20px 12px;border-bottom:2px solid var(--ink);background:var(--paper);display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:12px}
+.brand .mark{font-family:var(--mono);font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--pitch);font-weight:700;border:1.5px solid var(--pitch);padding:3px 7px;border-radius:3px}
+.brand h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em;text-transform:uppercase;line-height:1}
+.brand h1 span{color:var(--ink2);font-weight:600}
+.mast .meta{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--ink2);margin-left:auto;text-align:right;line-height:1.7}
+.mast .meta b{color:var(--ink);font-weight:700}
+
+/* ---- control rail ---- */
+.rail{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;padding:11px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
+input[type=text],input[type=number],select{font-family:var(--sans);font-size:13px;color:var(--ink);background:#fff;border:1px solid var(--line2);border-radius:5px;padding:7px 9px;outline:none}
+input[type=text]:focus,input[type=number]:focus,select:focus{border-color:var(--pitch);box-shadow:0 0 0 2px rgba(15,93,63,.15)}
+input[type=number]{width:78px}
+#search{width:200px}
+.chips{display:flex;gap:5px;flex-wrap:wrap}
+.chip{font-family:var(--mono);font-size:11px;letter-spacing:.03em;padding:6px 9px;border:1px solid var(--line2);border-radius:20px;background:#fff;cursor:pointer;color:var(--ink2);user-select:none;transition:.12s}
+.chip:hover{border-color:var(--pitch)}
+.chip.on{background:var(--pitch);border-color:var(--pitch);color:#fff;font-weight:600}
+.seg{display:flex;border:1px solid var(--line2);border-radius:6px;overflow:hidden;background:#fff}
+.seg button{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:7px 11px;border:0;background:transparent;cursor:pointer;color:var(--ink2);border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--ink);color:var(--paper);font-weight:700}
+.toggle{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.toggle input{display:none}
+.sw{width:34px;height:19px;border-radius:11px;background:var(--line2);position:relative;transition:.15s}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:#fff;transition:.15s}
+.toggle input:checked + .sw{background:var(--pitch)}
+.toggle input:checked + .sw::after{transform:translateX(15px)}
+.btn{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:8px 12px;border:1px solid var(--ink);border-radius:6px;background:var(--ink);color:var(--paper);cursor:pointer;font-weight:600}
+.btn.ghost{background:#fff;color:var(--ink)}
+.btn:hover{opacity:.9}
+.spacer{margin-left:auto}
+
+/* ---- column panel ---- */
+.colpanel{position:relative}
+.coldrop{position:absolute;top:calc(100% + 6px);right:0;z-index:40;background:#fff;border:1px solid var(--line2);border-radius:8px;box-shadow:var(--shadow);padding:12px;width:420px;max-height:60vh;overflow:auto;display:none}
+.coldrop.open{display:block}
+.coldrop h4{margin:10px 0 6px;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--pitch)}
+.coldrop h4:first-child{margin-top:0}
+.colgrid{display:grid;grid-template-columns:1fr 1fr;gap:3px 14px}
+.colgrid label{display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:2px 0}
+
+/* ---- table ---- */
+.tablewrap{flex:1;overflow:auto;background:var(--paper)}
+table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%}
+thead th{position:sticky;top:0;z-index:20;background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;font-weight:600;padding:9px 9px;text-align:right;white-space:nowrap;cursor:pointer;border-bottom:2px solid var(--pitch);user-select:none}
+thead th.txt{text-align:left}
+thead th:hover{background:#22332c}
+thead th.sorted{color:#fff;background:var(--pitch)}
+thead th .ar{opacity:.55;font-size:9px;margin-left:3px}
+thead th.sorted .ar{opacity:1}
+tbody td{padding:6px 9px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:12px}
+tbody td.txt{text-align:left;font-family:var(--sans)}
+tbody tr:hover td{background:rgba(15,93,63,.06)}
+tbody tr.sel td{background:rgba(200,134,43,.14)}
+/* sticky id columns */
+th.s0,td.s0{position:sticky;left:0;z-index:10}
+th.s1,td.s1{position:sticky;z-index:10}
+td.s0,td.s1{background:var(--panel)}
+tbody tr:hover td.s0,tbody tr:hover td.s1{background:#e7e9e2}
+th.s0,th.s1{z-index:25}
+td.name{font-weight:700;cursor:pointer}
+td.name:hover{color:var(--pitch);text-decoration:underline}
+.poscell{font-family:var(--mono);font-size:10px;letter-spacing:.05em;color:var(--ink2)}
+.cmpbox{cursor:pointer}
+.lgtag{font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;color:var(--ink2)}
+.empty{padding:60px 20px;text-align:center;color:var(--ink2);font-family:var(--mono)}
+
+/* ---- statusbar ---- */
+.status{border-top:1px solid var(--line);background:var(--panel);padding:7px 20px;display:flex;align-items:center;gap:16px;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--ink2);flex-wrap:wrap}
+.status b{color:var(--ink)}
+.legend{display:flex;align-items:center;gap:5px;margin-left:auto}
+.legend .sw3{width:13px;height:13px;border-radius:3px;display:inline-block}
+
+/* ---- modal ---- */
+.overlay{position:fixed;inset:0;background:rgba(18,26,22,.55);z-index:80;display:none;align-items:stretch;justify-content:flex-end}
+.overlay.open{display:flex}
+.sheet{width:min(720px,96vw);background:var(--paper);height:100%;overflow:auto;box-shadow:-12px 0 40px rgba(0,0,0,.25);animation:slide .22s ease}
+@keyframes slide{from{transform:translateX(40px);opacity:.6}to{transform:none;opacity:1}}
+.sheet .top{position:sticky;top:0;background:var(--ink);color:var(--paper);padding:16px 22px;display:flex;align-items:center;gap:14px;z-index:2}
+.sheet .top h2{margin:0;font-size:22px;font-weight:800;letter-spacing:-.01em;text-transform:uppercase}
+.sheet .top .sub{font-family:var(--mono);font-size:11px;letter-spacing:.04em;opacity:.85}
+.sheet .top .x{margin-left:auto;cursor:pointer;font-size:22px;line-height:1;background:none;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:6px;width:34px;height:34px}
+.sheet .body{padding:20px 22px 60px}
+.poolnote{font-family:var(--mono);font-size:10.5px;color:var(--ink2);margin:0 0 14px;letter-spacing:.03em}
+.poolnote b{color:var(--pitch)}
+.cmplegend{display:flex;gap:18px;margin:0 0 8px;font-family:var(--mono);font-size:11px}
+.cmplegend span{display:flex;align-items:center;gap:6px}
+.cmplegend i{width:14px;height:14px;border-radius:50%;display:inline-block}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:18px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:8px 10px}
+.stat .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
+.stat .v{font-family:var(--mono);font-size:18px;font-weight:700;margin-top:2px}
+.stat .pct{font-family:var(--mono);font-size:10px;color:#fff;border-radius:3px;padding:1px 5px;display:inline-block;margin-top:4px}
+.sech{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--pitch);margin:22px 0 8px;border-bottom:1px solid var(--line);padding-bottom:5px}
+svg .slabel{font-family:var(--mono);font-size:8.5px;fill:var(--ink);letter-spacing:.02em}
+svg .sval{font-family:var(--mono);font-size:8px;fill:var(--ink2)}
+svg .ring{fill:none;stroke:var(--line2);stroke-width:.7}
+@media (max-width:640px){
+  .brand h1{font-size:20px}.mast .meta{display:none}
+  #search{width:140px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="mast">
+    <div class="brand">
+      <span class="mark">Scout</span>
+      <h1>USL 2026 <span>Outfield Terminal</span></h1>
+    </div>
+    <div class="meta">
+      <div><b id="m_players">0</b> players &nbsp;·&nbsp; 42 clubs &nbsp;·&nbsp; 2 divisions</div>
+      <div>American Soccer Analysis model &nbsp;·&nbsp; season 2026</div>
+    </div>
+  </header>
+
+  <div class="rail">
+    <div class="field"><label>Search player</label><input id="search" type="text" placeholder="Name…" autocomplete="off"/></div>
+    <div class="field"><label>League</label>
+      <select id="league"><option value="">All</option><option value="USLC">USL Championship</option><option value="USL1">USL League One</option></select>
+    </div>
+    <div class="field"><label>Position</label><div class="chips" id="poschips"></div></div>
+    <div class="field"><label>Min. minutes</label><input id="minmin" type="number" value="0" min="0" step="50"/></div>
+    <div class="field"><label>Age</label>
+      <div style="display:flex;gap:5px;align-items:center">
+        <input id="agemin" type="number" placeholder="min" min="0" style="width:60px"/>
+        <span style="color:var(--ink2)">–</span>
+        <input id="agemax" type="number" placeholder="max" min="0" style="width:60px"/>
+      </div>
+    </div>
+    <div class="field"><label>View</label>
+      <div class="seg" id="presets">
+        <button data-p="overview" class="on">Overview</button>
+        <button data-p="shooting">Shooting</button>
+        <button data-p="creation">Creation</button>
+        <button data-p="passing">Passing</button>
+        <button data-p="ga">Goals&nbsp;Added</button>
+      </div>
+    </div>
+    <div class="field"><label>Percentile pool min.</label><input id="poolmin" type="number" value="450" min="0" step="50"/></div>
+    <label class="toggle" style="margin-bottom:2px"><input type="checkbox" id="heatmap"/><span class="sw"></span>Percentile colors</label>
+    <div class="spacer"></div>
+    <div class="field colpanel">
+      <label>&nbsp;</label>
+      <button class="btn ghost" id="colbtn">Columns ▾</button>
+      <div class="coldrop" id="coldrop"></div>
+    </div>
+    <div class="field"><label>&nbsp;</label><button class="btn ghost" id="exportbtn">Export CSV</button></div>
+    <div class="field"><label>&nbsp;</label><button class="btn" id="comparebtn" disabled>Compare (0)</button></div>
+  </div>
+
+  <div class="tablewrap"><table id="grid"><thead><tr id="head"></tr></thead><tbody id="rowsbody"></tbody></table>
+    <div class="empty" id="empty" style="display:none">No players match these filters. Loosen the minutes or position settings.</div>
+  </div>
+
+  <div class="status">
+    <span>Showing <b id="s_shown">0</b> of <b id="s_total">0</b></span>
+    <span>Sorted by <b id="s_sort">—</b></span>
+    <span>Click a name for the percentile profile · tick the box to compare two players</span>
+    <span class="legend" id="s_legend" style="display:none">
+      Percentile within position:
+      <i class="sw3" style="background:var(--bad)"></i>low
+      <i class="sw3" style="background:var(--mid)"></i>mid
+      <i class="sw3" style="background:var(--good)"></i>high
+    </span>
+  </div>
+</div>
+
+<div class="overlay" id="overlay"><div class="sheet" id="sheet"></div></div>
+
+<script id="data">
+const COLS = __COLS__;
+const DATA = __DATA__;
+</script>
+<script>
+
+/* ---------- index helpers ---------- */
+const idx = {}; COLS.forEach((c,i)=>idx[c.key]=i);
+const METRICS = COLS.filter(c=>c.role==="metric");
+const GROUPS = ["Shooting","Creation","Production","Value","Passing","Goals Added"];
+const fmters = {
+  int:v=>v==null?"":Math.round(v).toLocaleString(),
+  dec2:v=>v==null?"":v.toFixed(2),
+  pct:v=>v==null?"":(v*100).toFixed(1)+"%",
+  dist:v=>v==null?"":v.toFixed(1),
+  str:v=>v==null?"":v
+};
+function fmt(c,v){return fmters[c.fmt](v);}
+
+const ALL_POS=["CB","FB","DM","CM","AM","W","ST","GK"];
+
+const PRESETS = {
+  overview:{cols:["goals","ast","ga2","xgxa","gap90","xgxap90","gaa","gp90r"], sort:"gaa"},
+  shooting:{cols:["shots","sot","goals","xg","gxg","gps","shp90","gp90","xgp90"], sort:"xgp90"},
+  creation:{cols:["kp","ast","xa","axa","kpp90","astp90","xap90","gap90"], sort:"xap90"},
+  passing:{cols:["patt","ppct","xppct","poe","poe100","adist","vdist","tsh"], sort:"poe100"},
+  ga:{cols:["graw","gaa","gp90r","gpd_a","gpp_a","gpr_a","gpsh_a","gpi_a","gpf_a"], sort:"gaa"}
+};
+const ID_SHOWN=["pos","age","min"]; // always-on id metrics besides name/tm
+
+const PIZZA = METRICS.filter(c=>c.pizza).map(c=>c.key); // default profile metrics
+const PIZZA_ARCS = [
+  {name:"Attacking", keys:["gp90","xgp90","shp90","gxg"]},
+  {name:"Creating", keys:["astp90","xap90","kpp90","gap90"]},
+  {name:"Possession", keys:["ppct","poe100","tsh","gp90r"]},
+  {name:"Defending", keys:["gpi_a","gpr_a","gpp_a"]}
+];
+
+/* ---------- state ---------- */
+const state = {
+  search:"", league:"", positions:new Set(), minMin:0, ageMin:null, ageMax:null,
+  preset:"overview", visible:[...PRESETS.overview.cols],
+  sortKey:"gaa", sortDir:-1, heatmap:false, poolMin:450,
+  selected:new Set()
+};
+
+/* ---------- percentile engine ---------- */
+let poolCache={}; let poolKeyMem=null;
+function buildPools(){
+  const key = state.poolMin;
+  if(poolKeyMem===key) return; poolKeyMem=key; poolCache={};
+  const pmin=idx.pos, mmin=idx.min;
+  ALL_POS.forEach(p=>{
+    const players = DATA.filter(r=>r[pmin]===p && (r[mmin]||0)>=key);
+    const m={};
+    METRICS.forEach(c=>{
+      const vals = players.map(r=>r[idx[c.key]]).filter(v=>v!=null).sort((a,b)=>a-b);
+      m[c.key]=vals;
+    });
+    poolCache[p]=m;
+  });
+}
+function pctRank(pos,key,v){
+  if(v==null) return null;
+  const arr=(poolCache[pos]||{})[key]; if(!arr||arr.length<4) return null;
+  // count <= v
+  let lo=0,hi=arr.length;
+  while(lo<hi){const mid=(lo+hi)>>1; if(arr[mid]<=v) lo=mid+1; else hi=mid;}
+  let p = lo/arr.length;
+  const c=COLS[idx[key]];
+  if(c.hib===false) p=1-p;
+  return Math.round(p*100);
+}
+function pctColor(p){
+  if(p==null) return null;
+  // 0 bad -> 50 mid -> 100 good
+  const bad=[191,59,59], mid=[216,162,58], good=[31,138,85];
+  let a,b,t;
+  if(p<50){a=bad;b=mid;t=p/50;}else{a=mid;b=good;t=(p-50)/50;}
+  const c=a.map((x,i)=>Math.round(x+(b[i]-x)*t));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+
+/* ---------- filtering ---------- */
+function filtered(){
+  const s=state.search.toLowerCase();
+  return DATA.filter(r=>{
+    if(s && !String(r[idx.name]).toLowerCase().includes(s)) return false;
+    if(state.league && r[idx.lg]!==state.league) return false;
+    if(state.positions.size && !state.positions.has(r[idx.pos])) return false;
+    if((r[idx.min]||0) < state.minMin) return false;
+    const a=r[idx.age];
+    if(state.ageMin!=null && (a==null||a<state.ageMin)) return false;
+    if(state.ageMax!=null && (a==null||a>state.ageMax)) return false;
+    return true;
+  });
+}
+function sorted(list){
+  const k=idx[state.sortKey], dir=state.sortDir;
+  return list.slice().sort((A,B)=>{
+    let a=A[k],b=B[k];
+    const an=a==null, bn=b==null;
+    if(an&&bn) return 0; if(an) return 1; if(bn) return -1; // nulls last
+    if(typeof a==="string"){a=a.toLowerCase();b=b.toLowerCase();}
+    return a<b?-1*dir:a>b?1*dir:0;
+  });
+}
+
+/* ---------- render table ---------- */
+const head=document.getElementById("head"), body=document.getElementById("rowsbody");
+function colList(){ // ordered: name,tm,[id metrics],[visible metrics]
+  const c=["name","tm",...ID_SHOWN, ...state.visible.filter(k=>!ID_SHOWN.includes(k))];
+  return c;
+}
+function render(){
+  buildPools();
+  const cols=colList();
+  // header
+  head.innerHTML="";
+  const cmpTh=document.createElement("th"); cmpTh.className="txt s0"; cmpTh.style.left="0";
+  cmpTh.textContent=""; cmpTh.style.cursor="default"; head.appendChild(cmpTh);
+  let leftAcc=34; // width of compare col
+  cols.forEach((k,ci)=>{
+    const c=COLS[idx[k]];
+    const th=document.createElement("th");
+    const isTxt=c.fmt==="str";
+    th.className=(isTxt?"txt ":"")+(k==="name"?"s1":"");
+    if(k==="name"){th.style.left=leftAcc+"px";}
+    th.dataset.k=k;
+    th.innerHTML=`${c.label}<span class="ar">${state.sortKey===k?(state.sortDir<0?"▼":"▲"):"↕"}</span>`;
+    if(state.sortKey===k) th.classList.add("sorted");
+    th.onclick=()=>{ if(state.sortKey===k){state.sortDir*=-1;} else {state.sortKey=k; state.sortDir=(c.fmt==="str")?1:-1;} update(); };
+    head.appendChild(th);
+  });
+  update();
+}
+function update(){
+  const cols=colList();
+  let list=sorted(filtered());
+  document.getElementById("s_shown").textContent=list.length;
+  document.getElementById("s_total").textContent=DATA.length;
+  document.getElementById("m_players").textContent=DATA.length;
+  document.getElementById("s_total").textContent=DATA.length;
+  const sc=COLS[idx[state.sortKey]];
+  document.getElementById("s_sort").textContent=sc.label+" "+(state.sortDir<0?"↓":"↑");
+  document.getElementById("empty").style.display=list.length?"none":"block";
+  document.getElementById("s_legend").style.display=state.heatmap?"flex":"none";
+
+  // header sort arrows refresh
+  [...head.children].forEach(th=>{
+    if(!th.dataset.k)return;
+    th.classList.toggle("sorted",state.sortKey===th.dataset.k);
+    const ar=th.querySelector(".ar"); if(ar) ar.textContent=state.sortKey===th.dataset.k?(state.sortDir<0?"▼":"▲"):"↕";
+  });
+
+  const frag=document.createDocumentFragment();
+  for(const r of list){
+    const tr=document.createElement("tr");
+    const pid=r[idx.name]+"|"+r[idx.tm];
+    if(state.selected.has(pid)) tr.classList.add("sel");
+    // compare checkbox cell (sticky)
+    const cb=document.createElement("td"); cb.className="txt s0 cmpbox"; cb.style.left="0";
+    cb.innerHTML=`<input type="checkbox" ${state.selected.has(pid)?"checked":""}/>`;
+    cb.querySelector("input").onclick=e=>{e.stopPropagation(); toggleSel(pid);};
+    tr.appendChild(cb);
+    cols.forEach(k=>{
+      const c=COLS[idx[k]];
+      const v=r[idx[k]];
+      const td=document.createElement("td");
+      const isTxt=c.fmt==="str";
+      td.className=(isTxt?"txt ":"")+(k==="name"?"name s1":"");
+      if(k==="name"){td.style.left="34px"; td.textContent=v; td.onclick=()=>openProfile(r);}
+      else if(k==="pos"){td.innerHTML=`<span class="poscell">${v||""}</span>`;}
+      else if(k==="tm"){td.innerHTML=`<span class="lgtag">${v||""}</span>`;}
+      else td.textContent=fmt(c,v);
+      if(state.heatmap && c.role==="metric" && c.hib!==null && v!=null){
+        const p=pctRank(r[idx.pos],k,v);
+        if(p!=null){const col=pctColor(p); td.style.background=col; td.style.color = p>32&&p<70?"#1a1a1a":"#fff";}
+      }
+      tr.appendChild(td);
+    });
+    frag.appendChild(tr);
+  }
+  body.innerHTML=""; body.appendChild(frag);
+}
+
+/* ---------- selection / compare ---------- */
+function toggleSel(pid){
+  if(state.selected.has(pid)) state.selected.delete(pid);
+  else { if(state.selected.size>=2){ const first=state.selected.values().next().value; state.selected.delete(first);} state.selected.add(pid);}
+  const b=document.getElementById("comparebtn");
+  b.textContent=`Compare (${state.selected.size})`; b.disabled=state.selected.size<2;
+  update();
+}
+function rowByPid(pid){const [n,t]=pid.split("|");return DATA.find(r=>r[idx.name]===n&&r[idx.tm]===t);}
+
+/* ---------- pizza chart ---------- */
+function pizzaSVG(players){ // players: array of row (1 or 2)
+  const keys=PIZZA_ARCS.flatMap(a=>a.keys);
+  const N=keys.length, R=150, cx=190, cy=190, inner=34;
+  const arcColors={Attacking:"#bf3b3b",Creating:"#c8862b",Possession:"#1f8a55",Defending:"#2f6fb0"};
+  // map key->arc name
+  const keyArc={}; PIZZA_ARCS.forEach(a=>a.keys.forEach(k=>keyArc[k]=a.name));
+  const step=(2*Math.PI)/N;
+  const start=-Math.PI/2;
+  let s=`<svg viewBox="0 0 380 380" width="100%" style="max-width:420px;display:block;margin:0 auto">`;
+  // rings
+  [.25,.5,.75,1].forEach(f=>{ s+=`<circle class="ring" cx="${cx}" cy="${cy}" r="${inner+(R-inner)*f}"/>`; });
+  const palette=["#0f5d3f","#c8862b"]; // p1 green, p2 amber for compare
+  const single=players.length===1;
+  players.forEach((r,pi)=>{
+    keys.forEach((k,i)=>{
+      const p=pctRank(r[idx.pos],k,r[idx[k]]);
+      const frac=(p==null?0:p)/100;
+      const a0=start+i*step+ (single?0.04:(pi? step*0.5:0.04));
+      const a1=start+(i+1)*step- (single?0.04: (pi?0.04: step*0.5));
+      const rr=inner+(R-inner)*frac;
+      const x0=cx+inner*Math.cos(a0), y0=cy+inner*Math.sin(a0);
+      const x1=cx+rr*Math.cos(a0), y1=cy+rr*Math.sin(a0);
+      const x2=cx+rr*Math.cos(a1), y2=cy+rr*Math.sin(a1);
+      const x3=cx+inner*Math.cos(a1), y3=cy+inner*Math.sin(a1);
+      const fill= single? (p==null?"#cfcabb":pctColor(p)) : palette[pi];
+      const op= single?0.92:(pi?0.62:0.78);
+      s+=`<path d="M${x0} ${y0} L${x1} ${y1} A${rr} ${rr} 0 0 1 ${x2} ${y2} L${x3} ${y3} A${inner} ${inner} 0 0 0 ${x0} ${y0} Z" fill="${fill}" fill-opacity="${op}" stroke="#fff" stroke-width="0.8"/>`;
+    });
+  });
+  // labels
+  keys.forEach((k,i)=>{
+    const c=COLS[idx[k]];
+    const ang=start+(i+0.5)*step;
+    const lr=R+16;
+    let lx=cx+lr*Math.cos(ang), ly=cy+lr*Math.sin(ang);
+    const anchor=Math.abs(Math.cos(ang))<0.2?"middle":(Math.cos(ang)>0?"start":"end");
+    let lab=c.label.replace("g+ ","").replace(" vsAvg","");
+    s+=`<text class="slabel" x="${lx}" y="${ly}" text-anchor="${anchor}" dominant-baseline="middle">${lab}</text>`;
+  });
+  s+=`</svg>`;
+  return s;
+}
+
+/* ---------- profile sheet ---------- */
+function openProfile(r){
+  const pos=r[idx.pos];
+  const pid=r[idx.name]+"|"+r[idx.tm];
+  buildPools();
+  const sub=`${r[idx.team]} · ${r[idx.lg]==="USLC"?"USL Championship":"USL League One"} · ${pos}${r[idx.pos2]?"/"+r[idx.pos2]:""} · age ${r[idx.age]??"?"} · ${r[idx.min]} min`;
+  let html=`<div class="top"><div><h2>${r[idx.name]}</h2><div class="sub">${sub}</div></div><button class="x" onclick="closeSheet()">×</button></div><div class="body">`;
+  const pool=(poolCache[pos]?Object.values(poolCache[pos])[0]:[]); 
+  const poolN=(poolCache[pos]&&poolCache[pos].gp90)?poolCache[pos].gp90.length:0;
+  html+=`<p class="poolnote">Percentiles vs <b>${pos}</b>s with <b>${state.poolMin}+</b> minutes (pool of ~${poolN} players, both divisions).</p>`;
+  html+=pizzaSVG([r]);
+  // stat cards by group
+  GROUPS.forEach(g=>{
+    const ms=METRICS.filter(c=>c.group===g);
+    html+=`<div class="sech">${g}</div><div class="statgrid">`;
+    ms.forEach(c=>{
+      const v=r[idx[c.key]];
+      const p=(c.hib===null)?null:pctRank(pos,c.key,v);
+      const pc=p==null?"":`<span class="pct" style="background:${pctColor(p)}">${p}th</span>`;
+      html+=`<div class="stat"><div class="k">${c.label}</div><div class="v">${fmt(c,v)||"—"}</div>${pc}</div>`;
+    });
+    html+=`</div>`;
+  });
+  html+=`</div>`;
+  document.getElementById("sheet").innerHTML=html;
+  document.getElementById("overlay").classList.add("open");
+}
+function openCompare(){
+  const rs=[...state.selected].map(rowByPid).filter(Boolean);
+  if(rs.length<2) return;
+  buildPools();
+  const samePos=rs[0][idx.pos]===rs[1][idx.pos];
+  let html=`<div class="top"><div><h2 style="font-size:18px">Compare</h2><div class="sub">${rs[0][idx.name]} vs ${rs[1][idx.name]}</div></div><button class="x" onclick="closeSheet()">×</button></div><div class="body">`;
+  html+=`<div class="cmplegend"><span><i style="background:#0f5d3f"></i>${rs[0][idx.name]} (${rs[0][idx.pos]})</span><span><i style="background:#c8862b"></i>${rs[1][idx.name]} (${rs[1][idx.pos]})</span></div>`;
+  html+=`<p class="poolnote">Each player's slices are percentiles vs <b>their own position</b> pool (${state.poolMin}+ min).${samePos?"":" <b>Note:</b> different positions — compare in context."}</p>`;
+  html+=pizzaSVG(rs);
+  // side by side key stats
+  const keys=PIZZA_ARCS.flatMap(a=>a.keys);
+  html+=`<div class="sech">Head to head — value (percentile)</div>`;
+  html+=`<table style="width:100%;font-family:var(--mono);font-size:12px;border-spacing:0"><thead><tr><th class="txt" style="text-align:left;background:none;color:var(--ink2);position:static;border:0">Metric</th><th style="background:none;color:#0f5d3f;position:static;border:0">${rs[0][idx.tm]}</th><th style="background:none;color:#c8862b;position:static;border:0">${rs[1][idx.tm]}</th></tr></thead><tbody>`;
+  METRICS.filter(c=>c.hib!==null).forEach(c=>{
+    const cells=rs.map(r=>{const v=r[idx[c.key]];const p=pctRank(r[idx.pos],c.key,v);return `${fmt(c,v)||"—"} <span style="color:var(--ink2)">${p==null?"":"·"+p+"th"}</span>`;});
+    html+=`<tr><td class="txt" style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)">${c.label}</td><td style="text-align:right;padding:4px 8px;border-bottom:1px solid var(--line)">${cells[0]}</td><td style="text-align:right;padding:4px 8px;border-bottom:1px solid var(--line)">${cells[1]}</td></tr>`;
+  });
+  html+=`</tbody></table></div>`;
+  document.getElementById("sheet").innerHTML=html;
+  document.getElementById("overlay").classList.add("open");
+}
+function closeSheet(){document.getElementById("overlay").classList.remove("open");}
+document.getElementById("overlay").onclick=e=>{if(e.target.id==="overlay")closeSheet();};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet();});
+
+/* ---------- columns panel ---------- */
+function buildColPanel(){
+  const d=document.getElementById("coldrop");
+  let h="";
+  GROUPS.forEach(g=>{
+    h+=`<h4>${g}</h4><div class="colgrid">`;
+    METRICS.filter(c=>c.group===g).forEach(c=>{
+      h+=`<label><input type="checkbox" data-k="${c.key}" ${state.visible.includes(c.key)?"checked":""}/> ${c.label}</label>`;
+    });
+    h+=`</div>`;
+  });
+  d.innerHTML=h;
+  d.querySelectorAll("input").forEach(inp=>inp.onchange=()=>{
+    const k=inp.dataset.k;
+    if(inp.checked){if(!state.visible.includes(k))state.visible.push(k);}
+    else state.visible=state.visible.filter(x=>x!==k);
+    setPresetActive(null);
+    render();
+  });
+}
+document.getElementById("colbtn").onclick=e=>{e.stopPropagation();document.getElementById("coldrop").classList.toggle("open");};
+document.addEventListener("click",e=>{const dd=document.getElementById("coldrop"); if(dd.classList.contains("open")&&!dd.contains(e.target)&&e.target.id!=="colbtn")dd.classList.remove("open");});
+
+/* ---------- controls wiring ---------- */
+function setPresetActive(p){
+  document.querySelectorAll("#presets button").forEach(b=>b.classList.toggle("on",b.dataset.p===p));
+}
+document.querySelectorAll("#presets button").forEach(b=>b.onclick=()=>{
+  const p=b.dataset.p; state.preset=p; state.visible=[...PRESETS[p].cols];
+  state.sortKey=PRESETS[p].sort; state.sortDir=-1;
+  setPresetActive(p); buildColPanel(); render();
+});
+// position chips
+const pc=document.getElementById("poschips");
+ALL_POS.forEach(p=>{const el=document.createElement("div");el.className="chip";el.textContent=p;el.onclick=()=>{
+  if(state.positions.has(p))state.positions.delete(p); else state.positions.add(p);
+  el.classList.toggle("on"); update();
+}; pc.appendChild(el);});
+
+document.getElementById("search").oninput=e=>{state.search=e.target.value;update();};
+document.getElementById("league").onchange=e=>{state.league=e.target.value;update();};
+document.getElementById("minmin").oninput=e=>{state.minMin=+e.target.value||0;update();};
+document.getElementById("agemin").oninput=e=>{state.ageMin=e.target.value===""?null:+e.target.value;update();};
+document.getElementById("agemax").oninput=e=>{state.ageMax=e.target.value===""?null:+e.target.value;update();};
+document.getElementById("poolmin").oninput=e=>{state.poolMin=+e.target.value||0; poolKeyMem=null; if(state.heatmap)update();};
+document.getElementById("heatmap").onchange=e=>{state.heatmap=e.target.checked;update();};
+document.getElementById("comparebtn").onclick=openCompare;
+document.getElementById("exportbtn").onclick=exportCSV;
+
+function exportCSV(){
+  const cols=colList();
+  const heads=cols.map(k=>COLS[idx[k]].label);
+  const list=sorted(filtered());
+  const lines=[heads.join(",")];
+  list.forEach(r=>{
+    lines.push(cols.map(k=>{const v=r[idx[k]];if(v==null)return"";return typeof v==="string"&&v.includes(",")?`"${v}"`:v;}).join(","));
+  });
+  const blob=new Blob([lines.join("\n")],{type:"text/csv"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="usl_2026_scout_view.csv";a.click();
+}
+
+/* ---------- go ---------- */
+setPresetActive("overview");
+buildColPanel();
+render();
+</script>
+</body></html>

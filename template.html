@@ -11,10 +11,21 @@
   --pitch:#0f5d3f; --pitch-bright:#1c7a55; --amber:#c8862b;
   --hi:#163a2c;
   --good:#1f8a55; --mid:#d8a23a; --bad:#bf3b3b;
+  --card:#ffffff; --rowhover:#e7e9e2; --bar:#15211d; --bar-fg:#f6f5f0;
   --shadow:0 1px 0 rgba(0,0,0,.04), 0 8px 28px rgba(20,30,25,.10);
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 }
+[data-theme="dark"]{
+  --paper:#0e1411; --panel:#151c18; --ink:#e9ebe5; --ink2:#9aa39c;
+  --line:#28312b; --line2:#384139;
+  --pitch:#3fa978; --pitch-bright:#54c790; --amber:#d8a23a;
+  --hi:#1d3a2c;
+  --good:#2fa463; --mid:#d8a23a; --bad:#d05656;
+  --card:#1a221d; --rowhover:#222b25; --bar:#0a0f0c; --bar-fg:#e9ebe5;
+  --shadow:0 1px 0 rgba(0,0,0,.3), 0 12px 34px rgba(0,0,0,.5);
+}
+html{color-scheme:light dark}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
 body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:13px;-webkit-font-smoothing:antialiased}
@@ -33,15 +44,15 @@ body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:
 .rail{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;padding:11px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
 .field{display:flex;flex-direction:column;gap:4px}
 .field label{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
-input[type=text],input[type=number],select{font-family:var(--sans);font-size:13px;color:var(--ink);background:#fff;border:1px solid var(--line2);border-radius:5px;padding:7px 9px;outline:none}
+input[type=text],input[type=number],select{font-family:var(--sans);font-size:13px;color:var(--ink);background:var(--card);border:1px solid var(--line2);border-radius:7px;padding:7px 9px;outline:none}
 input[type=text]:focus,input[type=number]:focus,select:focus{border-color:var(--pitch);box-shadow:0 0 0 2px rgba(15,93,63,.15)}
 input[type=number]{width:78px}
 #search{width:200px}
 .chips{display:flex;gap:5px;flex-wrap:wrap}
-.chip{font-family:var(--mono);font-size:11px;letter-spacing:.03em;padding:6px 9px;border:1px solid var(--line2);border-radius:20px;background:#fff;cursor:pointer;color:var(--ink2);user-select:none;transition:.12s}
+.chip{font-family:var(--mono);font-size:11px;letter-spacing:.03em;padding:6px 9px;border:1px solid var(--line2);border-radius:20px;background:var(--card);cursor:pointer;color:var(--ink2);user-select:none;transition:.12s}
 .chip:hover{border-color:var(--pitch)}
 .chip.on{background:var(--pitch);border-color:var(--pitch);color:#fff;font-weight:600}
-.seg{display:flex;border:1px solid var(--line2);border-radius:6px;overflow:hidden;background:#fff}
+.seg{display:flex;border:1px solid var(--line2);border-radius:7px;overflow:hidden;background:var(--card)}
 .seg button{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:7px 11px;border:0;background:transparent;cursor:pointer;color:var(--ink2);border-right:1px solid var(--line)}
 .seg button:last-child{border-right:0}
 .seg button.on{background:var(--ink);color:var(--paper);font-weight:700}
@@ -52,13 +63,13 @@ input[type=number]{width:78px}
 .toggle input:checked + .sw{background:var(--pitch)}
 .toggle input:checked + .sw::after{transform:translateX(15px)}
 .btn{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:8px 12px;border:1px solid var(--ink);border-radius:6px;background:var(--ink);color:var(--paper);cursor:pointer;font-weight:600}
-.btn.ghost{background:#fff;color:var(--ink)}
+.btn.ghost{background:var(--card);color:var(--ink)}
 .btn:hover{opacity:.9}
 .spacer{margin-left:auto}
 
 /* ---- column panel ---- */
 .colpanel{position:relative}
-.coldrop{position:absolute;top:calc(100% + 6px);right:0;z-index:40;background:#fff;border:1px solid var(--line2);border-radius:8px;box-shadow:var(--shadow);padding:12px;width:420px;max-height:60vh;overflow:auto;display:none}
+.coldrop{position:absolute;top:calc(100% + 6px);right:0;z-index:40;background:var(--card);border:1px solid var(--line2);border-radius:10px;box-shadow:var(--shadow);padding:12px;width:420px;max-height:60vh;overflow:auto;display:none}
 .coldrop.open{display:block}
 .coldrop h4{margin:10px 0 6px;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--pitch)}
 .coldrop h4:first-child{margin-top:0}
@@ -68,7 +79,7 @@ input[type=number]{width:78px}
 /* ---- table ---- */
 .tablewrap{flex:1;overflow:auto;background:var(--paper)}
 table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%}
-thead th{position:sticky;top:0;z-index:20;background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;font-weight:600;padding:9px 9px;text-align:right;white-space:nowrap;cursor:pointer;border-bottom:2px solid var(--pitch);user-select:none}
+thead th{position:sticky;top:0;z-index:20;background:var(--bar);color:var(--bar-fg);font-family:var(--mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;font-weight:600;padding:9px 9px;text-align:right;white-space:nowrap;cursor:pointer;border-bottom:2px solid var(--pitch);user-select:none}
 thead th.txt{text-align:left}
 thead th:hover{background:#22332c}
 thead th.sorted{color:#fff;background:var(--pitch)}
@@ -82,7 +93,7 @@ tbody tr.sel td{background:rgba(200,134,43,.14)}
 th.s0,td.s0{position:sticky;left:0;z-index:10}
 th.s1,td.s1{position:sticky;z-index:10}
 td.s0,td.s1{background:var(--panel)}
-tbody tr:hover td.s0,tbody tr:hover td.s1{background:#e7e9e2}
+tbody tr:hover td.s0,tbody tr:hover td.s1{background:var(--rowhover)}
 th.s0,th.s1{z-index:25}
 td.name{font-weight:700;cursor:pointer}
 td.name:hover{color:var(--pitch);text-decoration:underline}
@@ -102,7 +113,7 @@ td.name:hover{color:var(--pitch);text-decoration:underline}
 .overlay.open{display:flex}
 .sheet{width:min(720px,96vw);background:var(--paper);height:100%;overflow:auto;box-shadow:-12px 0 40px rgba(0,0,0,.25);animation:slide .22s ease}
 @keyframes slide{from{transform:translateX(40px);opacity:.6}to{transform:none;opacity:1}}
-.sheet .top{position:sticky;top:0;background:var(--ink);color:var(--paper);padding:16px 22px;display:flex;align-items:center;gap:14px;z-index:2}
+.sheet .top{position:sticky;top:0;background:var(--bar);color:var(--bar-fg);padding:16px 22px;display:flex;align-items:center;gap:14px;z-index:2}
 .sheet .top h2{margin:0;font-size:22px;font-weight:800;letter-spacing:-.01em;text-transform:uppercase}
 .sheet .top .sub{font-family:var(--mono);font-size:11px;letter-spacing:.04em;opacity:.85}
 .sheet .top .x{margin-left:auto;cursor:pointer;font-size:22px;line-height:1;background:none;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:6px;width:34px;height:34px}
@@ -174,6 +185,55 @@ svg .ring{fill:none;stroke:var(--line2);stroke-width:.7}
 .crestimg{border-radius:5px;object-fit:contain;background:#fff;flex:0 0 auto}
 .tmdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
 .taccent{height:5px;border-radius:3px;margin:8px 0 2px}
+/* theme toggle */
+.themebtn{margin-left:14px;align-self:center;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:7px 12px;border:1px solid var(--line2);border-radius:20px;background:var(--card);color:var(--ink2);cursor:pointer;transition:.15s;font-weight:600}
+.themebtn:hover{border-color:var(--pitch);color:var(--ink)}
+.sheet .top .opbtn{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;padding:7px 11px;border-radius:7px;border:1px solid rgba(255,255,255,.32);background:rgba(255,255,255,.08);color:var(--bar-fg);cursor:pointer;font-weight:600}
+.sheet .top .opbtn:hover{background:rgba(255,255,255,.18)}
+/* similar players view */
+#view-similar{display:block;overflow:auto;padding:18px 22px 48px}
+.simhead{display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin-bottom:6px}
+.simhead h3{margin:0;font-size:17px;font-weight:800;letter-spacing:-.01em}
+.simbar{position:relative;height:8px;border-radius:5px;background:var(--line);overflow:hidden;min-width:64px}
+.simbar > i{position:absolute;inset:0;border-radius:5px;background:linear-gradient(90deg,var(--pitch),var(--pitch-bright));transform-origin:left}
+.simtbl{width:100%;border-collapse:separate;border-spacing:0;margin-top:10px}
+.simtbl th{position:static;background:none;color:var(--ink2);border:0;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;text-align:right;padding:7px 8px;cursor:default}
+.simtbl th.txt{text-align:left}
+.simtbl td{padding:7px 8px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.simtbl td.txt{text-align:left;font-family:var(--sans)}
+.simtbl tr:hover td{background:var(--rowhover)}
+.simtbl .name{font-weight:700;cursor:pointer}
+.simtbl .name:hover{color:var(--pitch)}
+.simname{display:inline-flex;align-items:center;gap:8px}
+/* one-pager */
+.opwrap{position:fixed;inset:0;background:rgba(10,14,12,.6);z-index:90;display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:24px}
+.opwrap.open{display:flex}
+#opSheet{background:#fff;color:#15211d;width:820px;max-width:100%;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.optools{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-bottom:1px solid #e6e3da}
+.optools button{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:8px 14px;border-radius:7px;border:1px solid #15211d;cursor:pointer;font-weight:600}
+.optools .pdf{background:#15211d;color:#fff}
+.optools .cls{background:#fff;color:#15211d}
+.oppage{padding:26px 30px 34px}
+.opband{display:flex;align-items:center;gap:16px;border-bottom:3px solid #15211d;padding-bottom:14px}
+.opband h2{margin:0;font-size:27px;font-weight:800;text-transform:uppercase;letter-spacing:-.02em;color:#15211d}
+.opband .osub{font-family:var(--mono);font-size:11.5px;color:#46524d;letter-spacing:.03em;margin-top:3px}
+.opband .ospacer{margin-left:auto;text-align:right;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#8a8a82}
+.opgrid{display:grid;grid-template-columns:360px 1fr;gap:22px;margin-top:18px}
+.opcol h4,.opnotes h4{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#0f5d3f;margin:0 0 8px;border-bottom:1px solid #e6e3da;padding-bottom:5px}
+.opmetric{display:grid;grid-template-columns:118px 46px 1fr;gap:9px;align-items:center;padding:3px 0;font-family:var(--mono);font-size:11px;color:#15211d}
+.opmetric .ob{height:9px;border-radius:4px;background:#e6e3da;position:relative;overflow:hidden}
+.opmetric .ob > i{position:absolute;inset:0;border-radius:4px;transform-origin:left}
+.opnotes{margin-top:20px}
+.opnotes .ed{min-height:90px;border:1px solid #d8d4c8;border-radius:8px;padding:10px 12px;font-family:var(--sans);font-size:13px;color:#15211d;line-height:1.5;outline:none}
+.opnotes .ed:empty:before{content:attr(data-ph);color:#9a978c}
+.opfoot{margin-top:20px;border-top:1px solid #e6e3da;padding-top:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;color:#8a8a82;display:flex;justify-content:space-between}
+@media print{
+  body > *:not(.opwrap){display:none !important}
+  .opwrap{position:static;background:#fff;display:block;padding:0;overflow:visible}
+  #opSheet{box-shadow:none;width:100%;max-width:none;border-radius:0}
+  .optools{display:none !important}
+  .oppage{padding:0}
+}
 </style>
 </head>
 <body>
@@ -187,11 +247,13 @@ svg .ring{fill:none;stroke:var(--line2);stroke-width:.7}
       <div><b id="m_players">0</b> players &nbsp;·&nbsp; 42 clubs &nbsp;·&nbsp; 2 divisions</div>
       <div>American Soccer Analysis model &nbsp;·&nbsp; season 2026</div>
     </div>
+    <button id="themebtn" class="themebtn" title="Toggle light/dark">Dark</button>
   </header>
 
   <nav class="tabs">
     <button class="tabbtn on" data-t="players">Players</button>
     <button class="tabbtn" data-t="scatter">Scatter</button>
+    <button class="tabbtn" data-t="similar">Similar</button>
     <button class="tabbtn" data-t="teams">Teams</button>
   </nav>
 
@@ -215,6 +277,10 @@ svg .ring{fill:none;stroke:var(--line2);stroke-width:.7}
     <label class="toggle tab-scatter" style="margin-bottom:2px"><input type="checkbox" id="labeltop" checked/><span class="sw"></span>Label outliers</label>
     <div class="field tab-scatter"><label>Colour by</label><div class="seg" id="scatcolor"><button data-c="pos" class="on">Position</button><button data-c="team">Team</button></div></div>
     <div class="field tab-teams"><label>Team</label><select id="teamsel" style="min-width:180px"></select></div>
+    <div class="field tab-similar"><label>Compare to player</label><input id="simbase" list="playerlist" type="text" placeholder="Type a name…" style="min-width:200px"/><datalist id="playerlist"></datalist></div>
+    <div class="field tab-similar"><label>Max age</label><input id="simage" type="number" placeholder="any" min="0" style="width:74px"/></div>
+    <div class="field tab-similar"><label>Min. minutes</label><input id="simmin" type="number" value="600" min="0" step="50" style="width:84px"/></div>
+    <label class="toggle tab-similar" style="margin-bottom:2px"><input type="checkbox" id="simsamepos" checked/><span class="sw"></span>Same position</label>
     <div class="field tab-players"><label>View</label>
       <div class="seg" id="presets">
         <button data-p="overview" class="on">Overview</button>
@@ -255,10 +321,12 @@ svg .ring{fill:none;stroke:var(--line2);stroke-width:.7}
   </div><!-- /view-players -->
 
   <div id="view-scatter" class="view" style="display:none"></div>
+  <div id="view-similar" class="view" style="display:none"></div>
   <div id="view-teams" class="view" style="display:none"></div>
 </div>
 
 <div class="overlay" id="overlay"><div class="sheet" id="sheet"></div></div>
+<div class="opwrap" id="opwrap"><div id="opSheet"></div></div>
 
 <script id="data">
 const COLS = (typeof __COLS__ === "undefined") ? null : __COLS__;
@@ -539,11 +607,12 @@ function pizzaSVG(players){ // players: array of row (1 or 2)
 
 /* ---------- profile sheet ---------- */
 function openProfile(r){
+  curProfile=r;
   const pos=r[idx.pos];
   const pid=r[idx.name]+"|"+r[idx.tm];
   buildPools();
   const sub=`${r[idx.team]} · ${r[idx.lg]==="USLC"?"USL Championship":"USL League One"} · ${pos}${r[idx.pos2]?"/"+r[idx.pos2]:""} · age ${r[idx.age]??"?"} · ${r[idx.min]} min`;
-  let html=`<div class="top">${crestBadge(r[idx.tm],34)}<div><h2>${r[idx.name]}</h2><div class="sub">${sub}</div></div><button class="x" onclick="closeSheet()">×</button></div><div class="body">`;
+  let html=`<div class="top">${crestBadge(r[idx.tm],34)}<div><h2>${r[idx.name]}</h2><div class="sub">${sub}</div></div><button class="opbtn" style="margin-left:auto" onclick="openOnePager()">One-pager</button><button class="opbtn" onclick="findSimilarFromProfile()">Similar</button><button class="x" onclick="closeSheet()">×</button></div><div class="body">`;
   const pool=(poolCache[pos]?Object.values(poolCache[pos])[0]:[]); 
   const poolN=(poolCache[pos]&&poolCache[pos].gp90)?poolCache[pos].gp90.length:0;
   html+=`<p class="poolnote">Percentiles vs <b>${pos}</b>s with <b>${state.poolMin}+</b> minutes (pool of ~${poolN} players, both divisions).</p>`;
@@ -653,17 +722,20 @@ function exportCSV(){
 
 /* ================= TABS ================= */
 state.tab="players"; state.xKey="xgp90"; state.yKey="xap90"; state.labelTop=true; state.scatColor="pos";
+state.simBase=null; state.simAgeMax=null; state.simMin=600; state.simSamePos=true;
 state.team=null; state.teamSort={key:"min",dir:-1};
 function showTab(t){
   state.tab=t;
   document.querySelectorAll(".tabbtn").forEach(b=>b.classList.toggle("on",b.dataset.t===t));
   document.getElementById("view-players").style.display=t==="players"?"":"none";
   document.getElementById("view-scatter").style.display=t==="scatter"?"":"none";
+  document.getElementById("view-similar").style.display=t==="similar"?"":"none";
   document.getElementById("view-teams").style.display=t==="teams"?"":"none";
   const setd=(cls,show)=>document.querySelectorAll(cls).forEach(e=>e.style.display=show?"flex":"none");
   setd(".tab-players",t==="players"); setd(".tab-ps",t==="players"||t==="scatter");
-  setd(".tab-scatter",t==="scatter"); setd(".tab-teams",t==="teams");
+  setd(".tab-scatter",t==="scatter"); setd(".tab-teams",t==="teams"); setd(".tab-similar",t==="similar");
   if(t==="scatter") renderScatter();
+  if(t==="similar") renderSimilar();
   if(t==="teams"){ fillTeamSelect(); renderTeams(); }
 }
 document.querySelectorAll(".tabbtn").forEach(b=>b.onclick=()=>showTab(b.dataset.t));
@@ -797,12 +869,94 @@ document.getElementById("poschips").addEventListener("click",()=>{if(state.tab==
 ["minmin","agemin","agemax"].forEach(id=>{const el=document.getElementById(id);const old=el.oninput;el.oninput=e=>{old&&old(e);if(state.tab==="scatter")renderScatter();};});
 (function(){const el=document.getElementById("league"),old=el.onchange;el.onchange=e=>{old&&old(e);if(state.tab==="scatter")renderScatter();if(state.tab==="teams"){fillTeamSelect();renderTeams();}};})();
 
+/* ===== THEME ===== */
+(function(){const b=document.getElementById("themebtn");function set(t){document.documentElement.dataset.theme=t;b.textContent=t==="dark"?"Light":"Dark";}b.onclick=()=>set(document.documentElement.dataset.theme==="dark"?"light":"dark");set("light");})();
+
+/* ===== RECRUITMENT FINDER (similar players) ===== */
+const SIM_METRICS=["gp90","xgp90","shp90","gxg","astp90","xap90","kpp90","gap90","ppct","poe100","tsh","gp90r","gpi_a","gpr_a","gpp_a"];
+let curProfile=null;
+const simLabel=r=>`${r[idx.name]} (${r[idx.tm]})`;
+let simByLabel={};
+function fillPlayerList(){
+  const dl=document.getElementById("playerlist"); simByLabel={};
+  const opts=DATA.map(r=>{const l=simLabel(r);simByLabel[l]=r;return l;}).sort();
+  dl.innerHTML=opts.map(l=>`<option value="${l}"></option>`).join("");
+}
+function setSimBase(r){ state.simBase=r; const inp=document.getElementById("simbase"); if(inp) inp.value=r?simLabel(r):""; }
+function findSimilarFromProfile(){ if(curProfile){ setSimBase(curProfile); closeSheet(); showTab("similar"); } }
+function simVector(r){ const pos=r[idx.pos],v={}; SIM_METRICS.forEach(k=>{v[k]=pctRank(pos,k,r[idx[k]]);}); return v; }
+function renderSimilar(){
+  buildPools();
+  const host=document.getElementById("view-similar");
+  const base=state.simBase;
+  if(!base){ host.innerHTML=`<div class="simhead"><h3>Recruitment finder</h3></div><p class="hint">Type a player into &ldquo;Compare to player&rdquo; above &mdash; or open any profile and hit &ldquo;Similar&rdquo; &mdash; to see their closest statistical matches in the league.</p>`; return; }
+  const pos=base[idx.pos], bv=simVector(base);
+  const ageMax=state.simAgeMax, minMin=state.simMin||0, samePos=state.simSamePos;
+  const scored=[];
+  DATA.forEach(r=>{
+    if(r===base) return;
+    if((r[idx.min]||0)<minMin) return;
+    if(samePos && r[idx.pos]!==pos) return;
+    if(ageMax!=null && !(r[idx.age]!=null && r[idx.age]<=ageMax)) return;
+    const v=simVector(r); let sum=0,n=0;
+    SIM_METRICS.forEach(k=>{ if(bv[k]!=null && v[k]!=null){ const d=bv[k]-v[k]; sum+=d*d; n++; } });
+    if(n>=6) scored.push({r, sim:Math.max(0,Math.round(100-Math.sqrt(sum/n)))});
+  });
+  scored.sort((a,b)=>b.sim-a.sim);
+  const top=scored.slice(0,30);
+  const cols=[["gp90","Goals/90"],["xgp90","xG/90"],["xap90","xA/90"],["kpp90","KeyP/90"],["gp90r","g+/90"],["ppct","Pass%"]];
+  let h=`<div class="simhead">${crestBadge(base[idx.tm],30)}<h3>Players like ${base[idx.name]}</h3><span class="hint">${pos}${samePos?"":" + any position"} &middot; ${minMin}+ min${ageMax!=null?` &middot; \u2264 ${ageMax} yrs`:""} &middot; ${top.length} matches</span></div>`;
+  if(!top.length){ host.innerHTML=h+`<p class="hint">No matches under these filters &mdash; lower the minutes or widen the age.</p>`; return; }
+  h+=`<table class="simtbl"><thead><tr><th class="txt">#</th><th class="txt">Player</th><th class="txt">Tm</th><th>Age</th><th>Min</th>`+cols.map(c=>`<th>${c[1]}</th>`).join("")+`<th style="text-align:right">Similarity</th></tr></thead><tbody>`;
+  top.forEach((o,i)=>{ const r=o.r;
+    h+=`<tr><td class="txt" style="color:var(--ink2)">${i+1}</td>`
+      +`<td class="txt"><span class="simname name" data-pid="${r[idx.name]}|${r[idx.tm]}">${crestBadge(r[idx.tm],17)}${r[idx.name]}</span></td>`
+      +`<td class="txt"><span class="lgtag">${r[idx.tm]}</span></td><td>${r[idx.age]??""}</td><td>${r[idx.min]}</td>`
+      +cols.map(c=>`<td>${fmt(COLS[idx[c[0]]],r[idx[c[0]]])}</td>`).join("")
+      +`<td><div style="display:flex;align-items:center;gap:8px;justify-content:flex-end"><div class="simbar"><i style="transform:scaleX(${o.sim/100})"></i></div><b style="min-width:28px;text-align:right">${o.sim}</b></div></td></tr>`;
+  });
+  h+=`</tbody></table>`; host.innerHTML=h;
+  host.querySelectorAll(".simtbl .name").forEach(n=>n.onclick=()=>{const [nm,tm]=n.dataset.pid.split("|");openProfile(DATA.find(r=>r[idx.name]===nm&&r[idx.tm]===tm));});
+}
+
+/* ===== ONE-PAGER (printable scouting report) ===== */
+function openOnePager(){
+  const r=curProfile; if(!r) return;
+  buildPools();
+  const pos=r[idx.pos], lg=r[idx.lg]==="USLC"?"USL Championship":"USL League One";
+  const sub=`${r[idx.team]} &middot; ${lg} &middot; ${pos}${r[idx.pos2]?"/"+r[idx.pos2]:""} &middot; age ${r[idx.age]??"?"} &middot; ${r[idx.min]} min &middot; ${r[idx.games]} games`;
+  const groups=[["Attacking",["gp90","xgp90","shp90","gxg"]],["Creating",["astp90","xap90","kpp90","gap90"]],["Possession",["ppct","poe100","tsh","gp90r"]],["Defending",["gpi_a","gpr_a","gpp_a"]]];
+  let mh="";
+  groups.forEach(([gn,keys])=>{ mh+=`<h4>${gn}</h4>`;
+    keys.forEach(k=>{const c=COLS[idx[k]];const p=pctRank(pos,k,r[idx[k]]);const cc=p==null?"#cfcabb":pctColor(p);
+      mh+=`<div class="opmetric"><span>${c.label}</span><span style="text-align:right;font-weight:700">${fmt(c,r[idx[k]])||"\u2014"}</span><span class="ob"><i style="background:${cc};transform:scaleX(${(p==null?0:p)/100})"></i></span></div>`;});
+  });
+  const poolN=(poolCache[pos]&&poolCache[pos].gp90)?poolCache[pos].gp90.length:0;
+  const today=new Date().toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"});
+  document.getElementById("opSheet").innerHTML=
+    `<div class="optools"><button class="pdf" onclick="window.print()">Print / Save PDF</button><button class="cls" onclick="closeOnePager()">Close</button></div>`
+    +`<div class="oppage"><div class="opband">${crestBadge(r[idx.tm],52)}<div><h2>${r[idx.name]}</h2><div class="osub">${sub}</div></div><div class="ospacer">Scouting report<br>${today}</div></div>`
+    +`<div class="opgrid"><div class="opcol"><h4>Percentile profile vs ${pos}s</h4>${pizzaSVG([r])}</div><div class="opcol">${mh}</div></div>`
+    +`<div class="opnotes"><h4>Scout notes</h4><div class="ed" contenteditable="true" data-ph="Type your assessment here before printing\u2026"></div></div>`
+    +`<div class="opfoot"><span>Percentiles vs ${pos}s with ${state.poolMin}+ min (pool ~${poolN}).</span><span>Data: American Soccer Analysis &middot; ${today}</span></div></div>`;
+  document.getElementById("opwrap").classList.add("open");
+}
+function closeOnePager(){ document.getElementById("opwrap").classList.remove("open"); }
+document.getElementById("opwrap").onclick=e=>{ if(e.target.id==="opwrap") closeOnePager(); };
+
+/* wire recruitment-finder controls */
+document.getElementById("simbase").oninput=e=>{ const r=simByLabel[e.target.value]; if(r){ state.simBase=r; if(state.tab==="similar") renderSimilar(); } };
+document.getElementById("simage").oninput=e=>{ state.simAgeMax=e.target.value===""?null:+e.target.value; if(state.tab==="similar") renderSimilar(); };
+document.getElementById("simmin").oninput=e=>{ state.simMin=+e.target.value||0; if(state.tab==="similar") renderSimilar(); };
+document.getElementById("simsamepos").onchange=e=>{ state.simSamePos=e.target.checked; if(state.tab==="similar") renderSimilar(); };
+
 /* ---------- go ---------- */
 if(COLS && DATA.length){
   setPresetActive("overview");
   buildColPanel();
   render();
   fillTeamSelect();
+  fillPlayerList();
   showTab("players");
 }else{
   document.body.innerHTML =

@@ -121,9 +121,54 @@ td.name:hover{color:var(--pitch);text-decoration:underline}
 svg .slabel{font-family:var(--mono);font-size:8.5px;fill:var(--ink);letter-spacing:.02em}
 svg .sval{font-family:var(--mono);font-size:8px;fill:var(--ink2)}
 svg .ring{fill:none;stroke:var(--line2);stroke-width:.7}
+/* tabs */
+.tabs{display:flex;gap:2px;padding:0 20px;background:var(--paper);border-bottom:1px solid var(--line)}
+.tabbtn{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:11px 18px;border:0;background:transparent;color:var(--ink2);cursor:pointer;border-bottom:2px solid transparent;font-weight:600}
+.tabbtn:hover{color:var(--ink)}
+.tabbtn.on{color:var(--pitch);border-bottom-color:var(--pitch)}
+.view{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+#view-scatter,#view-teams{display:block;overflow:auto;padding:18px 22px 48px}
+/* scatter */
+.scatterhead{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+.scatterhead h3{margin:0;font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:-.01em}
+.scatterhead .hint,.hint{font-family:var(--mono);font-size:10.5px;color:var(--ink2);letter-spacing:.03em}
+.scattersvg{width:100%;height:auto;max-width:1000px;background:var(--panel);border:1px solid var(--line);border-radius:10px;display:block}
+.scattersvg text{font-family:var(--mono)}
+.axt{font-size:11px;fill:var(--ink);font-weight:700;letter-spacing:.04em}
+.tick{font-size:9px;fill:var(--ink2)}
+.gl{stroke:var(--line);stroke-width:.6}
+.med{stroke:var(--line2);stroke-width:1;stroke-dasharray:4 4}
+.dotlab{font-size:8.5px;fill:var(--ink);font-weight:700;paint-order:stroke;stroke:var(--panel);stroke-width:2.4px}
+.dot{cursor:pointer;stroke:#fff;stroke-width:.8}
+.dot:hover{stroke:var(--ink);stroke-width:1.6}
+.poslegend{display:flex;gap:13px;flex-wrap:wrap;margin-top:11px;font-family:var(--mono);font-size:11px;color:var(--ink2)}
+.poslegend span{display:flex;align-items:center;gap:5px}
+.poslegend i{width:11px;height:11px;border-radius:50%;display:inline-block}
+/* teams */
+.tmhead{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:2px}
+.tmhead h2{margin:0;font-size:25px;font-weight:800;text-transform:uppercase;letter-spacing:-.02em}
+.tmhead .tag{font-family:var(--mono);font-size:11px;color:var(--ink2);letter-spacing:.04em}
+.band{display:grid;grid-template-columns:repeat(auto-fit,minmax(108px,1fr));gap:8px;margin:14px 0}
+.band .b{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+.band .b .k{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)}
+.band .b .v{font-family:var(--mono);font-size:20px;font-weight:700;margin-top:3px}
+.leaders{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:8px;margin:6px 0 4px}
+.leaders .l{background:var(--hi);color:var(--paper);border-radius:8px;padding:10px 12px}
+.leaders .l .k{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;opacity:.65}
+.leaders .l .n{font-size:15px;font-weight:700;margin-top:3px;cursor:pointer}
+.leaders .l .n:hover{text-decoration:underline}
+.leaders .l .v{font-family:var(--mono);font-size:10.5px;opacity:.85;margin-top:3px}
+.posbreak{margin:8px 0 4px}
+.posbreak .row{display:grid;grid-template-columns:40px 96px 1fr;gap:10px;align-items:center;padding:5px 0;font-family:var(--mono);font-size:11px;border-bottom:1px solid var(--line)}
+.posbreak .bar{height:13px;border-radius:3px;background:var(--pitch);min-width:1px}
+.posbreak .bar.barneg{background:var(--bad)}
+#view-teams .squad{margin-top:6px;border:1px solid var(--line);border-radius:10px;overflow:auto;max-width:100%}
+#view-teams .squad th{cursor:pointer}
+.tab-scatter,.tab-teams{display:none}
 @media (max-width:640px){
   .brand h1{font-size:20px}.mast .meta{display:none}
   #search{width:140px}
+  .scattersvg{min-width:560px}
 }
 </style>
 </head>
@@ -140,21 +185,32 @@ svg .ring{fill:none;stroke:var(--line2);stroke-width:.7}
     </div>
   </header>
 
+  <nav class="tabs">
+    <button class="tabbtn on" data-t="players">Players</button>
+    <button class="tabbtn" data-t="scatter">Scatter</button>
+    <button class="tabbtn" data-t="teams">Teams</button>
+  </nav>
+
   <div class="rail">
-    <div class="field"><label>Search player</label><input id="search" type="text" placeholder="Name…" autocomplete="off"/></div>
+    <div class="field tab-players"><label>Search player</label><input id="search" type="text" placeholder="Name…" autocomplete="off"/></div>
     <div class="field"><label>League</label>
       <select id="league"><option value="">All</option><option value="USLC">USL Championship</option><option value="USL1">USL League One</option></select>
     </div>
-    <div class="field"><label>Position</label><div class="chips" id="poschips"></div></div>
-    <div class="field"><label>Min. minutes</label><input id="minmin" type="number" value="0" min="0" step="50"/></div>
-    <div class="field"><label>Age</label>
+    <div class="field tab-ps"><label>Position</label><div class="chips" id="poschips"></div></div>
+    <div class="field tab-ps"><label>Min. minutes</label><input id="minmin" type="number" value="0" min="0" step="50"/></div>
+    <div class="field tab-ps"><label>Age</label>
       <div style="display:flex;gap:5px;align-items:center">
         <input id="agemin" type="number" placeholder="min" min="0" style="width:60px"/>
         <span style="color:var(--ink2)">–</span>
         <input id="agemax" type="number" placeholder="max" min="0" style="width:60px"/>
       </div>
     </div>
-    <div class="field"><label>View</label>
+    <div class="field tab-scatter"><label>X axis</label><select id="xsel"></select></div>
+    <div class="field tab-scatter"><label>Y axis</label><select id="ysel"></select></div>
+    <div class="field tab-scatter"><label>&nbsp;</label><button class="btn ghost" id="swapaxes">Swap&nbsp;⇄</button></div>
+    <label class="toggle tab-scatter" style="margin-bottom:2px"><input type="checkbox" id="labeltop" checked/><span class="sw"></span>Label outliers</label>
+    <div class="field tab-teams"><label>Team</label><select id="teamsel" style="min-width:180px"></select></div>
+    <div class="field tab-players"><label>View</label>
       <div class="seg" id="presets">
         <button data-p="overview" class="on">Overview</button>
         <button data-p="shooting">Shooting</button>
@@ -163,18 +219,19 @@ svg .ring{fill:none;stroke:var(--line2);stroke-width:.7}
         <button data-p="ga">Goals&nbsp;Added</button>
       </div>
     </div>
-    <div class="field"><label>Percentile pool min.</label><input id="poolmin" type="number" value="450" min="0" step="50"/></div>
-    <label class="toggle" style="margin-bottom:2px"><input type="checkbox" id="heatmap"/><span class="sw"></span>Percentile colors</label>
+    <div class="field tab-players"><label>Percentile pool min.</label><input id="poolmin" type="number" value="450" min="0" step="50"/></div>
+    <label class="toggle tab-players" style="margin-bottom:2px"><input type="checkbox" id="heatmap"/><span class="sw"></span>Percentile colors</label>
     <div class="spacer"></div>
-    <div class="field colpanel">
+    <div class="field colpanel tab-players">
       <label>&nbsp;</label>
       <button class="btn ghost" id="colbtn">Columns ▾</button>
       <div class="coldrop" id="coldrop"></div>
     </div>
-    <div class="field"><label>&nbsp;</label><button class="btn ghost" id="exportbtn">Export CSV</button></div>
-    <div class="field"><label>&nbsp;</label><button class="btn" id="comparebtn" disabled>Compare (0)</button></div>
+    <div class="field tab-players"><label>&nbsp;</label><button class="btn ghost" id="exportbtn">Export CSV</button></div>
+    <div class="field tab-players"><label>&nbsp;</label><button class="btn" id="comparebtn" disabled>Compare (0)</button></div>
   </div>
 
+  <div id="view-players" class="view">
   <div class="tablewrap"><table id="grid"><thead><tr id="head"></tr></thead><tbody id="rowsbody"></tbody></table>
     <div class="empty" id="empty" style="display:none">No players match these filters. Loosen the minutes or position settings.</div>
   </div>
@@ -190,19 +247,23 @@ svg .ring{fill:none;stroke:var(--line2);stroke-width:.7}
       <i class="sw3" style="background:var(--good)"></i>high
     </span>
   </div>
+  </div><!-- /view-players -->
+
+  <div id="view-scatter" class="view" style="display:none"></div>
+  <div id="view-teams" class="view" style="display:none"></div>
 </div>
 
 <div class="overlay" id="overlay"><div class="sheet" id="sheet"></div></div>
 
 <script id="data">
-const COLS = __COLS__;
-const DATA = __DATA__;
+const COLS = (typeof __COLS__ === "undefined") ? null : __COLS__;
+const DATA = (typeof __DATA__ === "undefined") ? [] : __DATA__;
 </script>
 <script>
 
 /* ---------- index helpers ---------- */
-const idx = {}; COLS.forEach((c,i)=>idx[c.key]=i);
-const METRICS = COLS.filter(c=>c.role==="metric");
+const idx = {}; (COLS||[]).forEach((c,i)=>idx[c.key]=i);
+const METRICS = (COLS||[]).filter(c=>c.role==="metric");
 const GROUPS = ["Shooting","Creation","Production","Value","Passing","Goals Added"];
 const fmters = {
   int:v=>v==null?"":Math.round(v).toLocaleString(),
@@ -548,9 +609,160 @@ function exportCSV(){
   a.download="usl_2026_scout_view.csv";a.click();
 }
 
+/* ================= TABS ================= */
+state.tab="players"; state.xKey="xgp90"; state.yKey="xap90"; state.labelTop=true;
+state.team=null; state.teamSort={key:"min",dir:-1};
+function showTab(t){
+  state.tab=t;
+  document.querySelectorAll(".tabbtn").forEach(b=>b.classList.toggle("on",b.dataset.t===t));
+  document.getElementById("view-players").style.display=t==="players"?"":"none";
+  document.getElementById("view-scatter").style.display=t==="scatter"?"":"none";
+  document.getElementById("view-teams").style.display=t==="teams"?"":"none";
+  const setd=(cls,show)=>document.querySelectorAll(cls).forEach(e=>e.style.display=show?"":"none");
+  setd(".tab-players",t==="players"); setd(".tab-ps",t==="players"||t==="scatter");
+  setd(".tab-scatter",t==="scatter"); setd(".tab-teams",t==="teams");
+  if(t==="scatter") renderScatter();
+  if(t==="teams"){ fillTeamSelect(); renderTeams(); }
+}
+document.querySelectorAll(".tabbtn").forEach(b=>b.onclick=()=>showTab(b.dataset.t));
+
+/* ================= SCATTER ================= */
+const POSCOL={CB:"#2f6fb0",FB:"#23a0a8",DM:"#7a5cc0",CM:"#0f7a50",AM:"#c8862b",W:"#d2691e",ST:"#bf3b3b",GK:"#888"};
+function fillMetricSelect(sel,def){
+  sel.innerHTML=METRICS.map(c=>`<option value="${c.key}"${c.key===def?" selected":""}>${c.group} · ${c.label}</option>`).join("");
+}
+let scatterPts=[];
+function renderScatter(){
+  const xk=state.xKey,yk=state.yKey,xc=COLS[idx[xk]],yc=COLS[idx[yk]];
+  const host=document.getElementById("view-scatter");
+  const pts=filtered().filter(r=>r[idx[xk]]!=null&&r[idx[yk]]!=null);
+  scatterPts=pts;
+  if(pts.length<2){host.innerHTML=`<div class="scatterhead"><h3>${yc.label} vs ${xc.label}</h3></div><p class="hint">Not enough players have both metrics under the current filters — loosen the position or minutes settings.</p>`;return;}
+  const W=920,H=560,m={l:74,r:26,t:22,b:58};
+  const xs=pts.map(r=>r[idx[xk]]),ys=pts.map(r=>r[idx[yk]]);
+  let xmin=Math.min(...xs),xmax=Math.max(...xs),ymin=Math.min(...ys),ymax=Math.max(...ys);
+  const px=(xmax-xmin)*0.06||1,py=(ymax-ymin)*0.06||1; xmin-=px;xmax+=px;ymin-=py;ymax+=py;
+  const SX=v=>m.l+(v-xmin)/(xmax-xmin)*(W-m.l-m.r);
+  const SY=v=>H-m.b-(v-ymin)/(ymax-ymin)*(H-m.t-m.b);
+  const med=a=>{const s=[...a].sort((p,q)=>p-q),n=s.length;return n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2;};
+  const mx=med(xs),my=med(ys),maxMin=Math.max(...pts.map(r=>r[idx.min]||0))||1;
+  const rad=v=>3+Math.sqrt((v||0)/maxMin)*8;
+  let s=`<svg class="scattersvg" viewBox="0 0 ${W} ${H}">`;
+  for(let i=0;i<=4;i++){
+    const t=i/4,xv=xmin+(xmax-xmin)*t,yv=ymin+(ymax-ymin)*t,X=SX(xv),Y=SY(yv);
+    s+=`<line class="gl" x1="${X}" y1="${m.t}" x2="${X}" y2="${H-m.b}"/><line class="gl" x1="${m.l}" y1="${Y}" x2="${W-m.r}" y2="${Y}"/>`;
+    s+=`<text class="tick" x="${X}" y="${H-m.b+16}" text-anchor="middle">${fmt(xc,xv)}</text>`;
+    s+=`<text class="tick" x="${m.l-8}" y="${Y+3}" text-anchor="end">${fmt(yc,yv)}</text>`;
+  }
+  s+=`<line class="med" x1="${SX(mx)}" y1="${m.t}" x2="${SX(mx)}" y2="${H-m.b}"/><line class="med" x1="${m.l}" y1="${SY(my)}" x2="${W-m.r}" y2="${SY(my)}"/>`;
+  s+=`<text class="tick" x="${SX(mx)+4}" y="${m.t+10}">median</text>`;
+  pts.forEach((r,i)=>{
+    const cx=SX(r[idx[xk]]),cy=SY(r[idx[yk]]),col=POSCOL[r[idx.pos]]||"#888";
+    s+=`<circle class="dot" data-i="${i}" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${rad(r[idx.min]).toFixed(1)}" fill="${col}" fill-opacity="0.78"><title>${r[idx.name]} (${r[idx.tm]}) · ${r[idx.pos]}\n${xc.label}: ${fmt(xc,r[idx[xk]])}\n${yc.label}: ${fmt(yc,r[idx[yk]])}\nMinutes: ${r[idx.min]}</title></circle>`;
+  });
+  if(state.labelTop){
+    pts.map((r,i)=>({i,d:Math.hypot((r[idx[xk]]-mx)/(xmax-xmin),(r[idx[yk]]-my)/(ymax-ymin))}))
+      .sort((a,b)=>b.d-a.d).slice(0,12).forEach(o=>{
+        const r=pts[o.i],cx=SX(r[idx[xk]]),cy=SY(r[idx[yk]]);
+        s+=`<text class="dotlab" x="${(cx+7).toFixed(1)}" y="${(cy+3).toFixed(1)}">${(r[idx.name]||"").split(" ").slice(-1)[0]}</text>`;
+      });
+  }
+  s+=`<text class="axt" x="${m.l+(W-m.l-m.r)/2}" y="${H-12}" text-anchor="middle">${xc.label} →</text>`;
+  s+=`<text class="axt" transform="translate(18,${m.t+(H-m.t-m.b)/2}) rotate(-90)" text-anchor="middle">${yc.label} →</text></svg>`;
+  const poss=[...new Set(pts.map(r=>r[idx.pos]))].filter(Boolean);
+  const legend=poss.map(p=>`<span><i style="background:${POSCOL[p]||"#888"}"></i>${p}</span>`).join("");
+  host.innerHTML=`<div class="scatterhead"><h3>${yc.label} vs ${xc.label}</h3><span class="hint">${pts.length} players · dot size = minutes · dashed lines = median · hover for detail, click for the full profile</span></div>${s}<div class="poslegend">${legend}</div>`;
+  host.querySelectorAll(".dot").forEach(d=>d.addEventListener("click",()=>openProfile(scatterPts[+d.dataset.i])));
+}
+
+/* ================= TEAMS ================= */
+function fillTeamSelect(){
+  const sel=document.getElementById("teamsel"),lg=state.league;
+  const names=[...new Set(DATA.filter(r=>!lg||r[idx.lg]===lg).map(r=>r[idx.team]).filter(Boolean))].sort();
+  if(!state.team||!names.includes(state.team)) state.team=names[0];
+  sel.innerHTML=names.map(n=>`<option${n===state.team?" selected":""}>${n}</option>`).join("");
+}
+function renderTeams(){
+  const host=document.getElementById("view-teams");
+  const squad=DATA.filter(r=>r[idx.team]===state.team);
+  if(!squad.length){host.innerHTML="<p class='hint'>Pick a team from the dropdown.</p>";return;}
+  const lg=squad[0][idx.lg]==="USLC"?"USL Championship":"USL League One";
+  const sum=k=>squad.reduce((a,r)=>a+(r[idx[k]]||0),0);
+  const ageRows=squad.filter(r=>r[idx.age]!=null);
+  const wAge=ageRows.reduce((a,r)=>a+r[idx.age]*(r[idx.min]||0),0)/(ageRows.reduce((a,r)=>a+(r[idx.min]||0),0)||1);
+  const best=(k,minq=0)=>squad.filter(r=>(r[idx.min]||0)>=minq&&r[idx[k]]!=null).sort((a,b)=>b[idx[k]]-a[idx[k]])[0];
+  const card=(lab,r,val)=>r?`<div class="l"><div class="k">${lab}</div><div class="n" data-pid="${r[idx.name]}|${r[idx.tm]}">${r[idx.name]}</div><div class="v">${val(r)}</div></div>`:"";
+  const order=["GK","CB","FB","DM","CM","AM","W","ST"],byPos={};
+  squad.forEach(r=>{(byPos[r[idx.pos]]=byPos[r[idx.pos]]||[]).push(r);});
+  const gaMax=Math.max(1,...order.map(p=>Math.abs((byPos[p]||[]).reduce((a,r)=>a+(r[idx.gaa]||0),0))));
+  let posrows="";
+  order.filter(p=>byPos[p]).forEach(p=>{
+    const rs=byPos[p],ga=rs.reduce((a,r)=>a+(r[idx.gaa]||0),0),mn=rs.reduce((a,r)=>a+(r[idx.min]||0),0);
+    posrows+=`<div class="row"><span style="color:var(--ink);font-weight:700">${p}</span><span>${rs.length}p · ${Math.round(mn)}'</span><span style="display:flex;align-items:center;gap:8px"><span class="bar ${ga<0?'barneg':''}" style="width:${(Math.abs(ga)/gaMax*100).toFixed(0)}%"></span><span style="color:var(--ink2)">g+ ${ga>=0?'+':''}${ga.toFixed(2)}</span></span></div>`;
+  });
+  const band=`<div class="band">
+    <div class="b"><div class="k">Players</div><div class="v">${squad.length}</div></div>
+    <div class="b"><div class="k">Minutes</div><div class="v">${Math.round(sum("min")).toLocaleString()}</div></div>
+    <div class="b"><div class="k">Avg age (wt)</div><div class="v">${wAge?wAge.toFixed(1):"—"}</div></div>
+    <div class="b"><div class="k">Goals</div><div class="v">${Math.round(sum("goals"))}</div></div>
+    <div class="b"><div class="k">xG</div><div class="v">${sum("xg").toFixed(1)}</div></div>
+    <div class="b"><div class="k">Assists</div><div class="v">${Math.round(sum("ast"))}</div></div>
+    <div class="b"><div class="k">Squad g+ vsAvg</div><div class="v">${sum("gaa")>=0?'+':''}${sum("gaa").toFixed(1)}</div></div></div>`;
+  const leaders=`<div class="leaders">
+    ${card("Top scorer",best("goals"),r=>`${r[idx.goals]} goals · ${fmt(COLS[idx.xg],r[idx.xg])} xG`)}
+    ${card("Most assists",best("ast"),r=>`${r[idx.ast]} assists · ${fmt(COLS[idx.xa],r[idx.xa])} xA`)}
+    ${card("Best g+/90 (450’+)",best("gp90r",450),r=>`${fmt(COLS[idx.gp90r],r[idx.gp90r])} g+/90`)}
+    ${card("Most minutes",best("min"),r=>`${r[idx.min]} min · ${r[idx.games]} games`)}</div>`;
+  host.innerHTML=`<div class="tmhead"><h2>${state.team}</h2><span class="tag">${lg}</span></div>${band}
+    <div class="sech">Key men</div>${leaders}
+    <div class="sech">Where the value sits — g+ above average by position unit</div><div class="posbreak">${posrows}</div>
+    <div class="sech">Full squad — click a header to sort, a name for the profile</div><div class="squad"><table id="squadtbl"></table></div>`;
+  host.querySelectorAll(".leaders .n").forEach(n=>n.addEventListener("click",()=>{const [nm,tm]=n.dataset.pid.split("|");openProfile(squad.find(r=>r[idx.name]===nm&&r[idx.tm]===tm));}));
+  renderSquad(squad);
+}
+const SQUAD_COLS=["name","pos","age","min","games","goals","ast","xg","xa","gaa","gp90r"];
+function renderSquad(squad){
+  const t=document.getElementById("squadtbl"); if(!t) return;
+  const sk=state.teamSort.key,dir=state.teamSort.dir;
+  const list=[...squad].sort((A,B)=>{let a=A[idx[sk]],b=B[idx[sk]];if(a==null&&b==null)return 0;if(a==null)return 1;if(b==null)return -1;if(typeof a==="string"){a=a.toLowerCase();b=b.toLowerCase();}return a<b?-dir:a>b?dir:0;});
+  let h="<thead><tr>";
+  SQUAD_COLS.forEach(k=>{const c=COLS[idx[k]];h+=`<th class="${c.fmt==='str'?'txt':''}" data-k="${k}">${c.label}${sk===k?(dir<0?' ▼':' ▲'):''}</th>`;});
+  h+="</tr></thead><tbody>";
+  list.forEach(r=>{h+="<tr>";SQUAD_COLS.forEach(k=>{const c=COLS[idx[k]],v=r[idx[k]];
+    h+= k==="name" ? `<td class="txt name" data-pid="${r[idx.name]}|${r[idx.tm]}">${v}</td>` : `<td class="${c.fmt==='str'?'txt':''}">${fmt(c,v)}</td>`;});h+="</tr>";});
+  h+="</tbody>"; t.innerHTML=h;
+  t.querySelectorAll("th").forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(state.teamSort.key===k)state.teamSort.dir*=-1;else state.teamSort={key:k,dir:COLS[idx[k]].fmt==="str"?1:-1};renderSquad(squad);});
+  t.querySelectorAll(".name").forEach(td=>td.onclick=()=>{const [nm,tm]=td.dataset.pid.split("|");openProfile(squad.find(r=>r[idx.name]===nm&&r[idx.tm]===tm));});
+}
+
+/* wire new controls + keep views live when shared filters change */
+fillMetricSelect(document.getElementById("xsel"),state.xKey);
+fillMetricSelect(document.getElementById("ysel"),state.yKey);
+document.getElementById("xsel").onchange=e=>{state.xKey=e.target.value;renderScatter();};
+document.getElementById("ysel").onchange=e=>{state.yKey=e.target.value;renderScatter();};
+document.getElementById("swapaxes").onclick=()=>{const a=state.xKey;state.xKey=state.yKey;state.yKey=a;document.getElementById("xsel").value=state.xKey;document.getElementById("ysel").value=state.yKey;renderScatter();};
+document.getElementById("labeltop").onchange=e=>{state.labelTop=e.target.checked;renderScatter();};
+document.getElementById("teamsel").onchange=e=>{state.team=e.target.value;state.teamSort={key:"min",dir:-1};renderTeams();};
+document.getElementById("poschips").addEventListener("click",()=>{if(state.tab==="scatter")renderScatter();});
+["minmin","agemin","agemax"].forEach(id=>{const el=document.getElementById(id);const old=el.oninput;el.oninput=e=>{old&&old(e);if(state.tab==="scatter")renderScatter();};});
+(function(){const el=document.getElementById("league"),old=el.onchange;el.onchange=e=>{old&&old(e);if(state.tab==="scatter")renderScatter();if(state.tab==="teams"){fillTeamSelect();renderTeams();}};})();
+
 /* ---------- go ---------- */
-setPresetActive("overview");
-buildColPanel();
-render();
+if(COLS && DATA.length){
+  setPresetActive("overview");
+  buildColPanel();
+  render();
+  fillTeamSelect();
+  showTab("players");
+}else{
+  document.body.innerHTML =
+    '<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:600px;margin:14vh auto;padding:0 28px;color:#15211d;line-height:1.55">'
+    + '<div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.3em;color:#0f5d3f;font-weight:700">SCOUT TERMINAL</div>'
+    + '<h2 style="font-size:24px;margin:10px 0 6px">This is the template, not the dashboard</h2>'
+    + '<p>This file is the empty shell used by the automatic GitHub setup. It has no player data in it on its own, which is why it looks blank here.</p>'
+    + '<p style="margin-top:14px">To view the dashboard with this season\u2019s players, open <b>USL 2026 Scout Terminal</b> instead.</p>'
+    + '<p style="color:#46524d;font-size:13px;margin-top:14px">Once this file is published by GitHub Actions, the data is filled in automatically and this notice disappears \u2014 nothing here is broken.</p>'
+    + '</div>';
+}
 </script>
 </body></html>

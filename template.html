@@ -618,7 +618,7 @@ function showTab(t){
   document.getElementById("view-players").style.display=t==="players"?"":"none";
   document.getElementById("view-scatter").style.display=t==="scatter"?"":"none";
   document.getElementById("view-teams").style.display=t==="teams"?"":"none";
-  const setd=(cls,show)=>document.querySelectorAll(cls).forEach(e=>e.style.display=show?"":"none");
+  const setd=(cls,show)=>document.querySelectorAll(cls).forEach(e=>e.style.display=show?"flex":"none");
   setd(".tab-players",t==="players"); setd(".tab-ps",t==="players"||t==="scatter");
   setd(".tab-scatter",t==="scatter"); setd(".tab-teams",t==="teams");
   if(t==="scatter") renderScatter();

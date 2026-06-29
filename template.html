@@ -4,39 +4,81 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>USL 2026 Scout Terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --paper:#eceae3; --panel:#f6f5f0; --ink:#15211d; --ink2:#46524d;
+  --paper:#eceae3; --panel:#f6f5f0; --ink:#1a1c1f; --ink2:#5a6068;
   --line:#d4d0c5; --line2:#c2bdb0;
-  --pitch:#0f5d3f; --pitch-bright:#1c7a55; --amber:#c8862b;
-  --hi:#163a2c;
+  --pitch:#e8590c; --pitch-bright:#ff7a18; --amber:#c8862b;
+  --hi:#fbe6d3;
   --good:#1f8a55; --mid:#d8a23a; --bad:#bf3b3b;
-  --card:#ffffff; --rowhover:#e7e9e2; --bar:#15211d; --bar-fg:#f6f5f0;
+  --card:#ffffff; --rowhover:#efece4; --bar:#16181c; --bar-fg:#f3f1ea; --canvas:#d6d3c9;
   --shadow:0 1px 0 rgba(0,0,0,.04), 0 8px 28px rgba(20,30,25,.10);
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
-  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --sans:"Archivo",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --display:"Anton","Archivo Black",Impact,"Arial Narrow Bold",sans-serif;
 }
 [data-theme="dark"]{
-  --paper:#0e1411; --panel:#151c18; --ink:#e9ebe5; --ink2:#9aa39c;
-  --line:#28312b; --line2:#384139;
-  --pitch:#3fa978; --pitch-bright:#54c790; --amber:#d8a23a;
-  --hi:#1d3a2c;
-  --good:#2fa463; --mid:#d8a23a; --bad:#d05656;
-  --card:#1a221d; --rowhover:#222b25; --bar:#0a0f0c; --bar-fg:#e9ebe5;
-  --shadow:0 1px 0 rgba(0,0,0,.3), 0 12px 34px rgba(0,0,0,.5);
+  --paper:#0a0b0d; --panel:#111318; --ink:#eef0f4; --ink2:#8b91a0;
+  --line:#222632; --line2:#333a48;
+  --pitch:#ff7a18; --pitch-bright:#ff9647; --amber:#e0a93a;
+  --hi:#2a1a0e;
+  --good:#34b36b; --mid:#e0a93a; --bad:#e05656;
+  --card:#161922; --rowhover:#1b1f2a; --bar:#070809; --bar-fg:#eef0f4; --canvas:#040507;
+  --shadow:0 1px 0 rgba(0,0,0,.35), 0 14px 40px rgba(0,0,0,.55);
 }
 html{color-scheme:light dark}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
-body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:13px;-webkit-font-smoothing:antialiased}
-.app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+body{background-color:var(--canvas);background-image:radial-gradient(rgba(255,255,255,.025) 1px,transparent 1px);background-size:24px 24px;color:var(--ink);font-family:var(--sans);font-size:13px;-webkit-font-smoothing:antialiased}
+.app{display:flex;height:calc(100vh - 26px);margin:13px;border-radius:18px;overflow:hidden;background:var(--paper);box-shadow:0 28px 80px rgba(0,0,0,.55),0 0 0 1px var(--line)}
+.side{width:218px;flex:0 0 auto;display:flex;flex-direction:column;background:var(--panel);border-right:1px solid var(--line);padding:18px 14px 16px;overflow:auto}
+.side-brand{display:flex;align-items:center;gap:11px;padding:2px 6px 4px}
+.side-brand .mark{color:#0a0b0d;background:var(--pitch);width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;box-shadow:0 4px 14px rgba(255,122,24,.4)}
+.side-brand .mark svg{width:20px;height:20px;stroke:#0a0b0d;stroke-width:2;fill:none}
+.side-name{font-family:var(--display);font-size:18px;letter-spacing:.03em;line-height:1;text-transform:uppercase}
+.side-name small{display:block;font-family:var(--sans);font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--pitch);font-weight:700;margin-top:5px}
+.side-label{font-family:var(--sans);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink2);font-weight:700;padding:18px 10px 8px}
+.side-nav{display:flex;flex-direction:column;gap:3px}
+.navi{position:relative;display:flex;align-items:center;gap:12px;width:100%;text-align:left;font-family:var(--sans);font-size:13.5px;font-weight:600;color:var(--ink2);background:none;border:0;border-radius:10px;padding:11px 12px;cursor:pointer;transition:.12s}
+.navi:hover{background:var(--rowhover);color:var(--ink)}
+.navi.on{background:var(--card);color:#fff;box-shadow:inset 3px 0 0 var(--pitch),var(--shadow)}
+.navi svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto;opacity:.9}
+.navi .dot{margin-left:auto;width:6px;height:6px;border-radius:50%;background:var(--pitch);opacity:0;transition:.12s}
+.navi.on .dot{opacity:1}
+.side-foot{margin-top:auto;padding-top:14px;display:flex;flex-direction:column;gap:12px}
+.dm-row{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+.dm-l{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2);font-weight:600}
+.dm-l svg{stroke:currentColor;stroke-width:1.8;fill:none}
+.dm-toggle{margin-left:auto;width:38px;height:21px;border-radius:20px;border:0;background:var(--line2);position:relative;cursor:pointer;transition:.15s;padding:0;flex:0 0 auto}
+.dm-toggle span{position:absolute;top:2px;left:2px;width:17px;height:17px;border-radius:50%;background:#fff;transition:.15s}
+.dm-toggle.on{background:var(--pitch)}
+.dm-toggle.on span{left:19px}
+.user{display:flex;align-items:center;gap:10px;padding:2px 4px}
+.user .ava{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--pitch),#b5430a);color:#fff;font-family:var(--display);font-size:12px;display:flex;align-items:center;justify-content:center;letter-spacing:.04em;flex:0 0 auto}
+.user .un{font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.2}
+.user .ur{font-size:10px;color:var(--ink2)}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;height:100%;overflow:hidden}
+.topbar{display:flex;align-items:center;gap:16px;padding:18px 26px 16px;border-bottom:1px solid var(--line);flex:0 0 auto}
+.tb-kick{font-family:var(--sans);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink2);font-weight:700;margin-bottom:6px}
+.topbar h2{margin:0;font-family:var(--display);font-size:27px;letter-spacing:.01em;line-height:.85}
+.topright{margin-left:auto;display:flex;align-items:center;gap:12px}
+.segfilter{display:flex;background:var(--card);border:1px solid var(--line);border-radius:9px;padding:3px}
+.segfilter button{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--ink2);background:none;border:0;border-radius:7px;padding:7px 13px;cursor:pointer;transition:.12s;white-space:nowrap}
+.segfilter button:hover{color:var(--ink)}
+.segfilter button.on{background:var(--pitch);color:#fff}
+.tb-search{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:9px;padding:8px 12px;color:var(--ink2)}
+.tb-search svg{width:15px;height:15px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round}
+.tb-search input{border:0;background:none;color:var(--ink);font-family:var(--sans);font-size:12.5px;outline:none;width:128px;padding:0}
+.content{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
 
 /* ---- masthead ---- */
-.mast{padding:14px 20px 12px;border-bottom:2px solid var(--ink);background:var(--paper);display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap}
-.brand{display:flex;align-items:baseline;gap:12px}
-.brand .mark{font-family:var(--mono);font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--pitch);font-weight:700;border:1.5px solid var(--pitch);padding:3px 7px;border-radius:3px}
-.brand h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em;text-transform:uppercase;line-height:1}
-.brand h1 span{color:var(--ink2);font-weight:600}
+.mast{padding:16px 22px 14px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,var(--panel),var(--paper));display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:13px}
+.brand .mark{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#0a0b0d;font-weight:800;background:var(--pitch);padding:6px 9px;border-radius:6px}
+.brand h1{margin:0;font-size:25px;font-weight:800;letter-spacing:-.02em;text-transform:uppercase;line-height:1}
+.brand h1 span{color:var(--pitch);font-weight:800}
 .mast .meta{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--ink2);margin-left:auto;text-align:right;line-height:1.7}
 .mast .meta b{color:var(--ink);font-weight:700}
 
@@ -62,7 +104,7 @@ input[type=number]{width:78px}
 .sw::after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:#fff;transition:.15s}
 .toggle input:checked + .sw{background:var(--pitch)}
 .toggle input:checked + .sw::after{transform:translateX(15px)}
-.btn{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:8px 12px;border:1px solid var(--ink);border-radius:6px;background:var(--ink);color:var(--paper);cursor:pointer;font-weight:600}
+.btn{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:8px 13px;border:1px solid var(--pitch);border-radius:7px;background:var(--pitch);color:#fff;cursor:pointer;font-weight:700}
 .btn.ghost{background:var(--card);color:var(--ink)}
 .btn:hover{opacity:.9}
 .spacer{margin-left:auto}
@@ -183,6 +225,14 @@ svg .ring{fill:none;stroke:var(--line2);stroke-width:.7}
 }
 .crest{display:inline-flex;align-items:center;justify-content:center;border-radius:5px;font-family:var(--mono);font-weight:700;letter-spacing:.01em;line-height:1;flex:0 0 auto}
 .crestimg{box-sizing:border-box;border-radius:5px;object-fit:contain;background:#fff;border:1px solid var(--line);padding:1px;flex:0 0 auto}
+.lgbadge{box-sizing:border-box;background:#fff;border:1px solid var(--line);border-radius:5px;padding:2px 5px;object-fit:contain;vertical-align:middle;width:auto}
+.brandchip{display:block;background:#fff;border:1px solid var(--line);border-radius:11px;padding:10px 13px;box-shadow:var(--shadow)}
+.brandchip img{display:block;height:24px;width:auto}
+.side-cap{font-family:var(--sans);font-size:9px;letter-spacing:.17em;text-transform:uppercase;color:var(--pitch);font-weight:700;padding:9px 6px 0}
+.hero-mark{position:absolute;right:30px;top:50%;transform:translateY(-50%);width:290px;max-width:42%;z-index:0;pointer-events:none;opacity:.08}
+.hero-mark.dark{display:none}
+[data-theme="light"] .hero-mark.light{display:none}
+[data-theme="light"] .hero-mark.dark{display:block;opacity:.06}
 .tmdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
 .taccent{height:5px;border-radius:3px;margin:8px 0 2px}
 /* theme toggle */
@@ -235,23 +285,26 @@ svg .ring{fill:none;stroke:var(--line2);stroke-width:.7}
   .oppage{padding:0}
 }
 /* results & fixtures strip (main page) */
-#results-strip{border-bottom:1px solid var(--line);background:var(--panel);padding:10px 20px 11px;flex:0 0 auto}
-.rs-head{display:flex;align-items:center;gap:10px;margin-bottom:9px}
-.rs-head h3{margin:0;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);font-weight:700}
+#results-strip{padding:2px 0 0;flex:0 0 auto}
+.rs-head{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.rs-head h3{margin:0;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);font-weight:700;display:flex;align-items:center;gap:8px}
+.rs-head h3:before{content:"";width:4px;height:13px;border-radius:2px;background:var(--pitch)}
 .rs-sample{font-family:var(--mono);font-size:9px;letter-spacing:.07em;text-transform:uppercase;background:var(--amber);color:#1a140a;border-radius:5px;padding:2px 7px;font-weight:700}
 .rs-toggle{margin-left:auto;background:none;border:0;color:var(--ink2);cursor:pointer;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
-.rs-toggle:hover{color:var(--ink)}
-.rs-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:3px}
-.gcard{flex:0 0 auto;min-width:152px;border:1px solid var(--line);border-radius:10px;background:var(--card);padding:8px 10px}
-.gcard.up{border-style:dashed}
-.gteam{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:12.5px;padding:2px 0}
-.gteam .gdot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
-.gteam .gab{color:var(--ink);letter-spacing:.02em}
-.gteam .gsc{margin-left:auto;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
-.gteam.lose .gab,.gteam.lose .gsc{color:var(--ink2)}
-.gcard.up .gsc{color:var(--ink2);font-weight:400}
-.gfoot{margin-top:5px;font-family:var(--mono);font-size:9.5px;letter-spacing:.03em;color:var(--ink2);display:flex;justify-content:space-between}
-.gdiv{flex:0 0 auto;width:1px;background:var(--line2);margin:2px 5px}
+.rs-toggle:hover{color:var(--pitch)}
+.rs-row{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
+.gcard{flex:0 0 auto;min-width:176px;border:1px solid var(--line);border-radius:12px;background:var(--card);padding:11px 13px;box-shadow:var(--shadow);transition:border-color .15s,transform .15s;cursor:pointer}
+.gcard:hover{border-color:var(--pitch);transform:translateY(-1px)}
+.gcard.up{border-style:dashed;box-shadow:none}
+.gteam{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:13px;padding:3px 0}
+.gteam .gab{color:var(--ink);letter-spacing:.02em;font-weight:600}
+.gteam .gsc{margin-left:auto;font-weight:800;font-size:16px;color:var(--ink);font-variant-numeric:tabular-nums}
+.gteam.lose .gab{color:var(--ink2);font-weight:600}
+.gteam.lose .gsc{color:var(--ink2);font-weight:700}
+.gteam.win .gsc{color:var(--pitch)}
+.gcard.up .gsc{color:var(--ink2);font-weight:400;font-size:12px}
+.gfoot{margin-top:8px;padding-top:7px;border-top:1px solid var(--line);font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);display:flex;justify-content:space-between}
+.gdiv{flex:0 0 auto;width:1px;background:var(--line);margin:4px 6px}
 .rs-empty{font-family:var(--mono);font-size:11px;color:var(--ink2);letter-spacing:.02em}
 /* match detail modal */
 .gmhdr{display:flex;align-items:center;gap:14px;width:100%}
@@ -272,96 +325,166 @@ svg .ring{fill:none;stroke:var(--line2);stroke-width:.7}
 .boxtbl td.txt{text-align:left;font-family:var(--sans)}
 .gcard[data-gid]{cursor:pointer;transition:border-color .12s}
 .gcard[data-gid]:hover{border-color:var(--pitch)}
+/* ===== dashboard home ===== */
+#view-home{display:block;overflow:auto;padding:22px 26px 44px}
+.hero{position:relative;border-radius:16px;overflow:hidden;margin-bottom:16px;border:1px solid var(--line);box-shadow:var(--shadow);background:var(--card)}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(70% 130% at 100% 0%,rgba(255,122,24,.20),transparent 55%),linear-gradient(180deg,var(--panel),var(--card));z-index:0}
+.hero-art{position:absolute;right:-70px;top:-90px;width:430px;height:430px;border-radius:50%;border:1.5px solid var(--ink);opacity:.06;z-index:0;pointer-events:none}
+.hero-art:after{content:"";position:absolute;inset:64px;border-radius:50%;border:1.5px solid var(--ink)}
+.hero-inner{position:relative;z-index:1;padding:26px 28px 28px}
+.hero-kick{display:flex;align-items:center;gap:8px;font-family:var(--sans);font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--pitch);margin-bottom:14px}
+.hero-kick:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--pitch);box-shadow:0 0 10px var(--pitch)}
+.hero-inner h2{margin:0;font-family:var(--display);font-size:42px;line-height:.9;letter-spacing:.005em}
+.hero-inner p{margin:15px 0 0;font-size:13px;line-height:1.55;color:var(--ink2);max-width:430px}
+.dash-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:13px;margin-bottom:16px}
+.statcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;position:relative;overflow:hidden;box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.045)}
+.statcard:after{content:"";position:absolute;right:-28px;top:-28px;width:78px;height:78px;border-radius:50%;background:radial-gradient(circle,rgba(255,122,24,.13),transparent 70%)}
+.statcard .lab{display:flex;align-items:center;gap:6px;font-family:var(--sans);font-size:9.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--ink2);position:relative;z-index:1}
+.statcard .lab svg{width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none;opacity:.85}
+.statcard .num{font-family:var(--display);font-size:30px;letter-spacing:.01em;margin-top:9px;line-height:1;position:relative;z-index:1}
+.statcard .snote{font-size:10px;color:var(--ink2);margin-top:6px;position:relative;z-index:1}
+.catbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}
+.catbtn{font-family:var(--sans);font-size:12px;letter-spacing:.01em;padding:8px 15px;border:1px solid var(--line2);border-radius:20px;background:var(--card);color:var(--ink2);cursor:pointer;font-weight:600;transition:.12s}
+.catbtn:hover{border-color:var(--pitch);color:var(--ink)}
+.catbtn.on{background:var(--pitch);color:#fff;border-color:var(--pitch);box-shadow:0 4px 14px rgba(255,122,24,.3)}
+.dash-grid{display:grid;grid-template-columns:1.55fr 1fr;gap:16px;margin-bottom:16px;align-items:start}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.045)}
+.panel-h{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.panel-h h3{margin:0;font-size:16px;font-weight:800;letter-spacing:-.01em}
+.panel-h .sub{font-size:10.5px;color:var(--ink2);margin-left:auto;font-weight:500}
+/* leaderboard */
+.lead{display:flex;flex-direction:column;gap:2px}
+.lrow{position:relative;display:flex;align-items:center;gap:13px;padding:12px 14px 16px;border-radius:11px;transition:.12s}
+.lrow:hover{background:var(--rowhover)}
+.lrow.top{background:linear-gradient(90deg,rgba(255,122,24,.16),rgba(255,122,24,.02));box-shadow:inset 3px 0 0 var(--pitch)}
+.lrk{font-family:var(--display);font-size:15px;color:var(--ink2);width:16px;text-align:center;flex:0 0 auto}
+.lrow.top .lrk{color:var(--pitch)}
+.lcr{flex:0 0 auto;display:flex}
+.lnm{flex:1;min-width:0}
+.ln{font-weight:700;font-size:13.5px;cursor:pointer;line-height:1.2}
+.ln:hover{color:var(--pitch)}
+.lm{font-size:11px;color:var(--ink2);margin-top:2px}
+.lv{font-family:var(--display);font-size:19px;letter-spacing:.01em;flex:0 0 auto;color:var(--ink)}
+.lrow.top .lv{color:var(--pitch)}
+.lbar{position:absolute;left:14px;right:14px;bottom:7px;height:3px;border-radius:3px;background:var(--line);overflow:hidden}
+.lbar>i{display:block;height:100%;background:var(--ink2);border-radius:3px;opacity:.5}
+.lrow.top .lbar{background:rgba(255,122,24,.22)}
+.lrow.top .lbar>i{background:var(--pitch);opacity:1}
+/* spotlight */
+.panel.spotlight{background:radial-gradient(120% 90% at 85% 0%,rgba(255,122,24,.09),var(--card) 55%)}
+.badge-rise{margin-left:auto;font-family:var(--sans);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--pitch);border:1px solid var(--pitch);border-radius:20px;padding:4px 9px}
+.feat-top{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.feat-crest{width:64px;height:64px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 38%,rgba(255,122,24,.24),var(--panel) 70%);border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.feat-crest .crestimg,.feat-crest .crest{border-radius:11px}
+.feat-name{font-size:19px;font-weight:800;letter-spacing:-.01em;line-height:1.1}
+.feat-club{font-size:12px;color:var(--ink2);margin-top:3px}
+.feat-pills{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.feat-pills span{font-size:10.5px;font-weight:600;color:var(--ink2);background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:4px 9px}
+.feat-mid{display:flex;align-items:center;gap:18px;margin:4px 0}
+.feat-mid .pizza,.feat-mid svg{flex:0 0 auto}
+.feat-bars{flex:1;min-width:0}
+.feat-bar{margin:0 0 13px}
+.feat-bar:last-child{margin-bottom:0}
+.fb-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:5px}
+.fb-l{font-size:11px;color:var(--ink2)}
+.fb-v{font-family:var(--display);font-size:16px}
+.fb-v sup{font-family:var(--sans);font-size:8px;font-weight:600;color:var(--ink2);margin-left:2px}
+.feat-bar .fb{height:7px;border-radius:5px;background:var(--rowhover);overflow:hidden}
+.feat-bar .fb>i{display:block;height:100%;border-radius:5px}
+.featbtn{width:100%;margin-top:18px;border:0;border-radius:11px;background:var(--pitch);color:#fff;font-family:var(--sans);font-weight:700;font-size:13px;padding:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:.12s;box-shadow:0 6px 18px rgba(255,122,24,.3)}
+.featbtn:hover{filter:brightness(1.07)}
+/* results & fixtures */
+.rs-head{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
+.rs-head h3{margin:0;font-size:16px;font-weight:800}
+.rs-head .mw{font-size:10.5px;color:var(--ink2)}
+.rs-sample{font-family:var(--sans);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--pitch);border:1px solid var(--pitch);border-radius:20px;padding:3px 8px}
+.rs-viewall{margin-left:auto;font-size:11px;font-weight:600;color:var(--pitch);background:none;border:0;cursor:pointer}
+.rs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.gcard{border:1px solid var(--line);border-radius:13px;background:var(--card);padding:13px 15px;box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.04);min-width:0}
+.gcard.up{border-style:dashed;box-shadow:none}
+.gc-top{display:flex;align-items:center;justify-content:space-between;font-family:var(--sans);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:12px}
+.gc-body{display:flex;align-items:center;gap:10px}
+.gc-side{display:flex;align-items:center;gap:8px;flex:1;min-width:0;font-weight:700;font-size:13px}
+.gc-side.away{flex-direction:row-reverse;text-align:right}
+.gc-side .ab{font-family:var(--sans);letter-spacing:.02em}
+.gc-side.lose{color:var(--ink2)}
+.gc-sc{font-family:var(--display);font-size:22px;letter-spacing:.04em;flex:0 0 auto;color:var(--ink)}
+.gc-sc.vs{font-family:var(--sans);font-size:11px;font-weight:700;color:var(--ink2);letter-spacing:.1em}
+.rs-empty{font-size:11px;color:var(--ink2)}
+@media (max-width:1080px){.dash-stats{grid-template-columns:repeat(2,1fr)}.dash-grid{grid-template-columns:1fr}.rs-grid{grid-template-columns:1fr}.hero-inner h2{font-size:32px}}
 </style>
 </head>
 <body>
 <div class="app">
-  <header class="mast">
-    <div class="brand">
-      <span class="mark">Scout</span>
-      <h1>USL 2026 <span>Outfield Terminal</span></h1>
+  <aside class="side">
+    <div class="side-brand"><span class="brandchip"><img src="logos/USL.png" alt="USL"></span></div>
+    <div class="side-cap">Scouting Terminal</div>
+    <div class="side-label">Menu</div>
+    <nav class="side-nav">
+      <button class="navi on" data-t="home"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Overview<span class="dot"></span></button>
+      <button class="navi" data-t="players"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><path d="M16 7h5M16 11h5M18 15h3"/></svg>Players<span class="dot"></span></button>
+      <button class="navi" data-t="scatter"><svg viewBox="0 0 24 24"><path d="M4 4v16h16"/><circle cx="9" cy="14" r="1.7"/><circle cx="14" cy="9" r="1.7"/><circle cx="18" cy="13" r="1.7"/></svg>Scatter<span class="dot"></span></button>
+      <button class="navi" data-t="similar"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3.2"/><circle cx="16" cy="16" r="3.2"/><path d="M10.4 10.4l3.2 3.2"/></svg>Similar<span class="dot"></span></button>
+      <button class="navi" data-t="teams"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4-3 7-7 9-4-2-7-5-7-9V6z"/></svg>Teams<span class="dot"></span></button>
+    </nav>
+    <div class="side-foot">
+      <div class="dm-row"><span class="dm-l"><svg viewBox="0 0 24 24" width="15" height="15"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>Dark mode</span><button id="themebtn" class="dm-toggle on" title="Toggle light/dark"><span></span></button></div>
+      <div class="user"><span class="ava">SL</span><div><div class="un">ScoutLab</div><div class="ur">Analytics workspace</div></div></div>
     </div>
-    <div class="meta">
-      <div><b id="m_players">0</b> players &nbsp;·&nbsp; 42 clubs &nbsp;·&nbsp; 2 divisions</div>
-      <div>American Soccer Analysis model &nbsp;·&nbsp; season 2026</div>
-    </div>
-    <button id="themebtn" class="themebtn" title="Toggle light/dark">Dark</button>
-  </header>
+  </aside>
 
-  <nav class="tabs">
-    <button class="tabbtn on" data-t="players">Players</button>
-    <button class="tabbtn" data-t="scatter">Scatter</button>
-    <button class="tabbtn" data-t="similar">Similar</button>
-    <button class="tabbtn" data-t="teams">Teams</button>
-  </nav>
-
-  <div class="rail">
-    <div class="field tab-players"><label>Search player</label><input id="search" type="text" placeholder="Name…" autocomplete="off"/></div>
-    <div class="field"><label>League</label>
-      <select id="league"><option value="">All</option><option value="USLC">USL Championship</option><option value="USL1">USL League One</option></select>
-    </div>
-    <div class="field tab-ps"><label>Position</label><div class="chips" id="poschips"></div></div>
-    <div class="field tab-ps"><label>Min. minutes</label><input id="minmin" type="number" value="0" min="0" step="50"/></div>
-    <div class="field tab-ps"><label>Age</label>
-      <div style="display:flex;gap:5px;align-items:center">
-        <input id="agemin" type="number" placeholder="min" min="0" style="width:60px"/>
-        <span style="color:var(--ink2)">–</span>
-        <input id="agemax" type="number" placeholder="max" min="0" style="width:60px"/>
+  <main class="main">
+    <header class="topbar">
+      <div><div class="tb-kick" id="viewsub">Dashboard</div><h2 id="viewtitle">Overview</h2></div>
+      <div class="topright">
+        <div class="segfilter" id="segfilter"><button data-lg="" class="on">All</button><button data-lg="USLC">USL Championship</button><button data-lg="USL1">League One</button></div>
+        <div class="tb-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input id="topsearch" type="text" placeholder="Search players" autocomplete="off"/></div>
+        <select id="league" style="display:none"><option value="">All divisions</option><option value="USLC">USL Championship</option><option value="USL1">USL League One</option></select>
       </div>
+    </header>
+
+    <div class="rail">
+      <div class="field tab-players"><label>Search player</label><input id="search" type="text" placeholder="Name…" autocomplete="off"/></div>
+      <div class="field tab-ps"><label>Position</label><div class="chips" id="poschips"></div></div>
+      <div class="field tab-ps"><label>Min. minutes</label><input id="minmin" type="number" value="0" min="0" step="50"/></div>
+      <div class="field tab-ps"><label>Age</label><div style="display:flex;gap:5px;align-items:center"><input id="agemin" type="number" placeholder="min" min="0" style="width:60px"/><span style="color:var(--ink2)">–</span><input id="agemax" type="number" placeholder="max" min="0" style="width:60px"/></div></div>
+      <div class="field tab-scatter"><label>X axis</label><select id="xsel"></select></div>
+      <div class="field tab-scatter"><label>Y axis</label><select id="ysel"></select></div>
+      <div class="field tab-scatter"><label>&nbsp;</label><button class="btn ghost" id="swapaxes">Swap ⇄</button></div>
+      <label class="toggle tab-scatter" style="margin-bottom:2px"><input type="checkbox" id="labeltop" checked/><span class="sw"></span>Label outliers</label>
+      <div class="field tab-scatter"><label>Colour by</label><div class="seg" id="scatcolor"><button data-c="pos" class="on">Position</button><button data-c="team">Team</button></div></div>
+      <div class="field tab-teams"><label>Team</label><select id="teamsel" style="min-width:180px"></select></div>
+      <div class="field tab-similar"><label>Compare to player</label><input id="simbase" list="playerlist" type="text" placeholder="Type a name…" style="min-width:200px"/><datalist id="playerlist"></datalist></div>
+      <div class="field tab-similar"><label>Max age</label><input id="simage" type="number" placeholder="any" min="0" style="width:74px"/></div>
+      <div class="field tab-similar"><label>Min. minutes</label><input id="simmin" type="number" value="600" min="0" step="50" style="width:84px"/></div>
+      <label class="toggle tab-similar" style="margin-bottom:2px"><input type="checkbox" id="simsamepos" checked/><span class="sw"></span>Same position</label>
+      <div class="field tab-players"><label>View</label><div class="seg" id="presets"><button data-p="overview" class="on">Overview</button><button data-p="shooting">Shooting</button><button data-p="creation">Creation</button><button data-p="passing">Passing</button><button data-p="ga">Goals Added</button></div></div>
+      <div class="field tab-players"><label>Percentile pool min.</label><input id="poolmin" type="number" value="450" min="0" step="50"/></div>
+      <label class="toggle tab-players" style="margin-bottom:2px"><input type="checkbox" id="heatmap"/><span class="sw"></span>Percentile colors</label>
+      <div class="spacer"></div>
+      <div class="field colpanel tab-players"><label>&nbsp;</label><button class="btn ghost" id="colbtn">Columns ▾</button><div class="coldrop" id="coldrop"></div></div>
+      <div class="field tab-players"><label>&nbsp;</label><button class="btn ghost" id="exportbtn">Export CSV</button></div>
+      <div class="field tab-players"><label>&nbsp;</label><button class="btn" id="comparebtn" disabled>Compare (0)</button></div>
     </div>
-    <div class="field tab-scatter"><label>X axis</label><select id="xsel"></select></div>
-    <div class="field tab-scatter"><label>Y axis</label><select id="ysel"></select></div>
-    <div class="field tab-scatter"><label>&nbsp;</label><button class="btn ghost" id="swapaxes">Swap&nbsp;⇄</button></div>
-    <label class="toggle tab-scatter" style="margin-bottom:2px"><input type="checkbox" id="labeltop" checked/><span class="sw"></span>Label outliers</label>
-    <div class="field tab-scatter"><label>Colour by</label><div class="seg" id="scatcolor"><button data-c="pos" class="on">Position</button><button data-c="team">Team</button></div></div>
-    <div class="field tab-teams"><label>Team</label><select id="teamsel" style="min-width:180px"></select></div>
-    <div class="field tab-similar"><label>Compare to player</label><input id="simbase" list="playerlist" type="text" placeholder="Type a name…" style="min-width:200px"/><datalist id="playerlist"></datalist></div>
-    <div class="field tab-similar"><label>Max age</label><input id="simage" type="number" placeholder="any" min="0" style="width:74px"/></div>
-    <div class="field tab-similar"><label>Min. minutes</label><input id="simmin" type="number" value="600" min="0" step="50" style="width:84px"/></div>
-    <label class="toggle tab-similar" style="margin-bottom:2px"><input type="checkbox" id="simsamepos" checked/><span class="sw"></span>Same position</label>
-    <div class="field tab-players"><label>View</label>
-      <div class="seg" id="presets">
-        <button data-p="overview" class="on">Overview</button>
-        <button data-p="shooting">Shooting</button>
-        <button data-p="creation">Creation</button>
-        <button data-p="passing">Passing</button>
-        <button data-p="ga">Goals&nbsp;Added</button>
+
+    <div class="content">
+      <div id="view-home" class="view"></div>
+      <div id="view-players" class="view" style="display:none">
+        <div class="tablewrap"><table id="grid"><thead><tr id="head"></tr></thead><tbody id="rowsbody"></tbody></table>
+          <div class="empty" id="empty" style="display:none">No players match these filters. Loosen the minutes or position settings.</div>
+        </div>
+        <div class="status">
+          <span>Showing <b id="s_shown">0</b> of <b id="s_total">0</b></span>
+          <span>Sorted by <b id="s_sort">—</b></span>
+          <span>Click a name for the percentile profile · tick the box to compare two players</span>
+          <span class="legend" id="s_legend" style="display:none">Percentile within position: <i class="sw3" style="background:var(--bad)"></i>low <i class="sw3" style="background:var(--mid)"></i>mid <i class="sw3" style="background:var(--good)"></i>high</span>
+        </div>
       </div>
+      <div id="view-scatter" class="view" style="display:none"></div>
+      <div id="view-similar" class="view" style="display:none"></div>
+      <div id="view-teams" class="view" style="display:none"></div>
     </div>
-    <div class="field tab-players"><label>Percentile pool min.</label><input id="poolmin" type="number" value="450" min="0" step="50"/></div>
-    <label class="toggle tab-players" style="margin-bottom:2px"><input type="checkbox" id="heatmap"/><span class="sw"></span>Percentile colors</label>
-    <div class="spacer"></div>
-    <div class="field colpanel tab-players">
-      <label>&nbsp;</label>
-      <button class="btn ghost" id="colbtn">Columns ▾</button>
-      <div class="coldrop" id="coldrop"></div>
-    </div>
-    <div class="field tab-players"><label>&nbsp;</label><button class="btn ghost" id="exportbtn">Export CSV</button></div>
-    <div class="field tab-players"><label>&nbsp;</label><button class="btn" id="comparebtn" disabled>Compare (0)</button></div>
-  </div>
-
-  <div id="view-players" class="view">
-  <div id="results-strip"></div>
-  <div class="tablewrap"><table id="grid"><thead><tr id="head"></tr></thead><tbody id="rowsbody"></tbody></table>
-    <div class="empty" id="empty" style="display:none">No players match these filters. Loosen the minutes or position settings.</div>
-  </div>
-
-  <div class="status">
-    <span>Showing <b id="s_shown">0</b> of <b id="s_total">0</b></span>
-    <span>Sorted by <b id="s_sort">—</b></span>
-    <span>Click a name for the percentile profile · tick the box to compare two players</span>
-    <span class="legend" id="s_legend" style="display:none">
-      Percentile within position:
-      <i class="sw3" style="background:var(--bad)"></i>low
-      <i class="sw3" style="background:var(--mid)"></i>mid
-      <i class="sw3" style="background:var(--good)"></i>high
-    </span>
-  </div>
-  </div><!-- /view-players -->
-
-  <div id="view-scatter" class="view" style="display:none"></div>
-  <div id="view-similar" class="view" style="display:none"></div>
-  <div id="view-teams" class="view" style="display:none"></div>
+  </main>
 </div>
 
 <div class="overlay" id="overlay"><div class="sheet" id="sheet"></div></div>
@@ -435,6 +558,8 @@ function crestBadge(tm,size){
   if(logo) return `<img class="crestimg" src="${logo}" alt="${tm}" style="width:${size}px;height:${size}px">`;
   return `<span class="crest" style="width:${size}px;height:${size}px;background:${col};color:${contrastOn(col)};font-size:${Math.round(size*0.4)}px">${tm||""}</span>`;
 }
+const LEAGUE_LOGOS={USLC:"logos/USLC.png",USL1:"logos/USL1.png"};
+function leagueBadge(lg,h){h=h||15;const src=LEAGUE_LOGOS[lg];if(!src)return "";return `<img class="lgbadge" src="${src}" alt="${lg==='USLC'?'USL Championship':'USL League One'}" style="height:${h}px">`;}
 
 const ALL_POS=["CB","FB","DM","CM","AM","W","ST","GK"];
 
@@ -558,7 +683,7 @@ function update(){
   let list=sorted(filtered());
   document.getElementById("s_shown").textContent=list.length;
   document.getElementById("s_total").textContent=DATA.length;
-  document.getElementById("m_players").textContent=DATA.length;
+  {const mp=document.getElementById("m_players"); if(mp) mp.textContent=DATA.length;}
   document.getElementById("s_total").textContent=DATA.length;
   const sc=COLS[idx[state.sortKey]];
   document.getElementById("s_sort").textContent=sc.label+" "+(state.sortDir<0?"↓":"↑");
@@ -663,8 +788,8 @@ function openProfile(r){
   const pos=r[idx.pos];
   const pid=r[idx.name]+"|"+r[idx.tm];
   buildPools();
-  const sub=`${r[idx.team]} · ${r[idx.lg]==="USLC"?"USL Championship":"USL League One"} · ${pos}${r[idx.pos2]?"/"+r[idx.pos2]:""} · age ${r[idx.age]??"?"} · ${r[idx.min]} min`;
-  let html=`<div class="top">${crestBadge(r[idx.tm],34)}<div><h2>${r[idx.name]}</h2><div class="sub">${sub}</div></div><button class="opbtn" style="margin-left:auto" onclick="openOnePager()">One-pager</button><button class="opbtn" onclick="findSimilarFromProfile()">Similar</button><button class="x" onclick="closeSheet()">×</button></div><div class="body">`;
+  const sub=`${r[idx.team]} · ${pos}${r[idx.pos2]?"/"+r[idx.pos2]:""} · age ${r[idx.age]??"?"} · ${r[idx.min]} min`;
+  let html=`<div class="top">${crestBadge(r[idx.tm],34)}<div><h2>${r[idx.name]}</h2><div class="sub">${leagueBadge(r[idx.lg],14)}<span style="margin-left:7px;vertical-align:middle">${sub}</span></div></div><button class="opbtn" style="margin-left:auto" onclick="openOnePager()">One-pager</button><button class="opbtn" onclick="findSimilarFromProfile()">Similar</button><button class="x" onclick="closeSheet()">×</button></div><div class="body">`;
   const pool=(poolCache[pos]?Object.values(poolCache[pos])[0]:[]); 
   const poolN=(poolCache[pos]&&poolCache[pos].gp90)?poolCache[pos].gp90.length:0;
   html+=`<p class="poolnote">Percentiles vs <b>${pos}</b>s with <b>${state.poolMin}+</b> minutes (pool of ~${poolN} players, both divisions).</p>`;
@@ -775,23 +900,33 @@ function exportCSV(){
 /* ================= TABS ================= */
 state.tab="players"; state.xKey="xgp90"; state.yKey="xap90"; state.labelTop=true; state.scatColor="pos";
 state.simBase=null; state.simAgeMax=null; state.simMin=600; state.simSamePos=true;
-state.resultsOpen=true;
+state.resultsOpen=false;
+state.homeCat="all";
 state.team=null; state.teamSort={key:"min",dir:-1};
+const VIEW_TITLES={
+  home:["Overview","Dashboard"],
+  players:["Players","Database"],
+  scatter:["Scatter","Explore"],
+  similar:["Recruitment finder","Discover"],
+  teams:["Teams","Squads"]
+};
 function showTab(t){
   state.tab=t;
-  document.querySelectorAll(".tabbtn").forEach(b=>b.classList.toggle("on",b.dataset.t===t));
-  document.getElementById("view-players").style.display=t==="players"?"":"none";
-  document.getElementById("view-scatter").style.display=t==="scatter"?"":"none";
-  document.getElementById("view-similar").style.display=t==="similar"?"":"none";
-  document.getElementById("view-teams").style.display=t==="teams"?"":"none";
+  document.querySelectorAll(".navi").forEach(b=>b.classList.toggle("on",b.dataset.t===t));
+  ["home","players","scatter","similar","teams"].forEach(v=>{const el=document.getElementById("view-"+v);if(el)el.style.display=(v===t)?"":"none";});
+  const ti=VIEW_TITLES[t]||["",""];
+  document.getElementById("viewtitle").textContent=ti[0];
+  {const vs=document.getElementById("viewsub");if(vs)vs.textContent=ti[1];}
+  document.querySelector(".rail").style.display=(t==="home")?"none":"flex";
   const setd=(cls,show)=>document.querySelectorAll(cls).forEach(e=>e.style.display=show?"flex":"none");
   setd(".tab-players",t==="players"); setd(".tab-ps",t==="players"||t==="scatter");
   setd(".tab-scatter",t==="scatter"); setd(".tab-teams",t==="teams"); setd(".tab-similar",t==="similar");
+  if(t==="home") renderHome();
   if(t==="scatter") renderScatter();
   if(t==="similar") renderSimilar();
   if(t==="teams"){ fillTeamSelect(); renderTeams(); }
 }
-document.querySelectorAll(".tabbtn").forEach(b=>b.onclick=()=>showTab(b.dataset.t));
+document.querySelectorAll(".navi").forEach(b=>b.onclick=()=>showTab(b.dataset.t));
 
 /* ================= SCATTER ================= */
 const POSCOL={CB:"#2f6fb0",FB:"#23a0a8",DM:"#7a5cc0",CM:"#0f7a50",AM:"#c8862b",W:"#d2691e",ST:"#bf3b3b",GK:"#888"};
@@ -887,7 +1022,7 @@ function renderTeams(){
     ${card("Most assists",best("ast"),r=>`${r[idx.ast]} assists · ${fmt(COLS[idx.xa],r[idx.xa])} xA`)}
     ${card("Best g+/90 (450’+)",best("gp90r",450),r=>`${fmt(COLS[idx.gp90r],r[idx.gp90r])} g+/90`)}
     ${card("Most minutes",best("min"),r=>`${r[idx.min]} min · ${r[idx.games]} games`)}</div>`;
-  host.innerHTML=`<div class="tmhead">${crestBadge(tmAbbr,46)}<div><h2>${state.team}</h2><span class="tag">${lg}</span></div></div><div class="taccent" style="background:${col}"></div>${band}
+  host.innerHTML=`<div class="tmhead">${crestBadge(tmAbbr,46)}<div><h2>${state.team}</h2>${leagueBadge(squad[0][idx.lg],16)}</div></div><div class="taccent" style="background:${col}"></div>${band}
     <div class="sech">Key men</div>${leaders}
     <div class="sech">Where the value sits — g+ above average by position unit</div><div class="posbreak">${posrows}</div>
     <div class="sech">Full squad — click a header to sort, a name for the profile</div><div class="squad"><table id="squadtbl"></table></div>`;
@@ -920,10 +1055,12 @@ document.querySelectorAll("#scatcolor button").forEach(b=>b.onclick=()=>{state.s
 document.getElementById("teamsel").onchange=e=>{state.team=e.target.value;state.teamSort={key:"min",dir:-1};renderTeams();};
 document.getElementById("poschips").addEventListener("click",()=>{if(state.tab==="scatter")renderScatter();});
 ["minmin","agemin","agemax"].forEach(id=>{const el=document.getElementById(id);const old=el.oninput;el.oninput=e=>{old&&old(e);if(state.tab==="scatter")renderScatter();};});
-(function(){const el=document.getElementById("league"),old=el.onchange;el.onchange=e=>{old&&old(e);renderResults();if(state.tab==="scatter")renderScatter();if(state.tab==="teams"){fillTeamSelect();renderTeams();}};})();
+(function(){const el=document.getElementById("league"),old=el.onchange;el.onchange=e=>{old&&old(e);if(state.tab==="home")renderHome();else renderResults();if(state.tab==="scatter")renderScatter();if(state.tab==="teams"){fillTeamSelect();renderTeams();}};})();
 
 /* ===== THEME ===== */
-(function(){const b=document.getElementById("themebtn");function set(t){document.documentElement.dataset.theme=t;b.textContent=t==="dark"?"Light":"Dark";}b.onclick=()=>set(document.documentElement.dataset.theme==="dark"?"light":"dark");set("light");})();
+(function(){const b=document.getElementById("themebtn");function set(t){document.documentElement.dataset.theme=t;b.classList.toggle("on",t==="dark");}b.onclick=()=>set(document.documentElement.dataset.theme==="dark"?"light":"dark");set("dark");})();
+(function(){const seg=document.getElementById("segfilter");if(seg){seg.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{seg.querySelectorAll("button").forEach(x=>x.classList.remove("on"));btn.classList.add("on");const sel=document.getElementById("league");sel.value=btn.dataset.lg;sel.dispatchEvent(new Event("change"));});}
+const ts=document.getElementById("topsearch");if(ts){ts.oninput=()=>{const s=document.getElementById("search");if(s)s.value=ts.value;state.search=ts.value;if(state.tab!=="players")showTab("players");update();};}})();
 
 /* ===== RECRUITMENT FINDER (similar players) ===== */
 const SIM_METRICS=["gp90","xgp90","shp90","gxg","astp90","xap90","kpp90","gap90","ppct","poe100","tsh","gp90r","gpi_a","gpr_a","gpp_a"];
@@ -988,7 +1125,7 @@ function openOnePager(){
   const today=new Date().toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"});
   document.getElementById("opSheet").innerHTML=
     `<div class="optools"><button class="pdf" onclick="window.print()">Print / Save PDF</button><button class="cls" onclick="closeOnePager()">Close</button></div>`
-    +`<div class="oppage"><div class="opband">${crestBadge(r[idx.tm],52)}<div><h2>${r[idx.name]}</h2><div class="osub">${sub}</div></div><div class="ospacer">Scouting report<br>${today}</div></div>`
+    +`<div class="oppage"><div class="opband">${crestBadge(r[idx.tm],52)}<div><h2>${r[idx.name]}</h2><div class="osub">${sub}</div></div><div class="ospacer"><img src="logos/USL.png" alt="USL" style="height:22px;display:block;margin:0 0 7px auto"/>Scouting report<br>${today}</div></div>`
     +`<div class="opgrid"><div class="opcol"><h4>Percentile profile vs ${pos}s</h4>${pizzaSVG([r])}</div><div class="opcol">${mh}</div></div>`
     +`<div class="opnotes"><h4>Scout notes</h4><div class="ed" contenteditable="true" data-ph="Type your assessment here before printing\u2026"></div></div>`
     +`<div class="opfoot"><span>Percentiles vs ${pos}s with ${state.poolMin}+ min (pool ~${poolN}).</span><span>Data: American Soccer Analysis &middot; ${today}</span></div></div>`;
@@ -997,25 +1134,93 @@ function openOnePager(){
 function closeOnePager(){ document.getElementById("opwrap").classList.remove("open"); }
 document.getElementById("opwrap").onclick=e=>{ if(e.target.id==="opwrap") closeOnePager(); };
 
+/* ===== DASHBOARD HOME ===== */
+const HOME_CATS=[
+  {id:"all",   label:"All-round",        key:"gp90r", bars:[["g+ /90","gp90r"],["g+ Shoot","gpsh"],["g+ Intrpt","gpi"]]},
+  {id:"goals", label:"Goalscorers",      key:"gp90",  bars:[["Goals/90","gp90"],["xG/90","xgp90"],["Shots/90","shp90"]]},
+  {id:"create",label:"Creators",         key:"xap90", bars:[["xA/90","xap90"],["Key passes/90","kpp90"],["g+ Pass","gpp"]]},
+  {id:"assist",label:"Assisters",        key:"astp90",bars:[["Assists/90","astp90"],["xA/90","xap90"],["Key passes/90","kpp90"]]},
+  {id:"ball",  label:"Ball progression", key:"gpp",   bars:[["g+ Pass","gpp"],["Pass%","ppct"],["Pass +/-","poe100"]]},
+  {id:"drib",  label:"Dribblers",        key:"gpd",   bars:[["g+ Drib","gpd"],["g+ Recv","gpr"],["g+ /90","gp90r"]]},
+  {id:"def",   label:"Defending",        key:"gpi",   bars:[["g+ Intrpt","gpi"],["g+ /90","gp90r"],["Pass%","ppct"]]},
+];
+function renderHome(){
+  const host=document.getElementById("view-home"); if(!host) return;
+  buildPools();
+  const lg=state.league;
+  const pool=DATA.filter(r=>!lg||r[idx.lg]===lg);
+  const clubs=new Set(pool.map(r=>r[idx.tm])).size;
+  const ages=pool.map(r=>r[idx.age]).filter(a=>a!=null);
+  const avgAge=ages.length?(ages.reduce((a,b)=>a+b,0)/ages.length):0;
+  const stats=[
+    ["Players",pool.length,"players","outfield, tracked"],
+    ["Clubs",clubs,"clubs",lg?"in this division":"across two leagues"],
+    ["Divisions",lg?1:2,"div",lg?(lg==="USLC"?"Championship":"League One"):"Champ. & League One"],
+    ["Avg age",avgAge?avgAge.toFixed(1):"—","age","years, mean"],
+    ["Data","ASA","data","Am. Soccer Analysis"]
+  ];
+  const IC={
+    players:'<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20c0-3 2.6-5 5.5-5s5.5 2 5.5 5"/><path d="M16 6.2a3 3 0 0 1 0 5.6M17.6 20c0-2.3-1-3.8-2.6-4.7"/></svg>',
+    clubs:'<svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4-3 7-7 9-4-2-7-5-7-9V6z"/></svg>',
+    div:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/></svg>',
+    age:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
+    data:'<svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg>'
+  };
+  const cat=HOME_CATS.find(c=>c.id===state.homeCat)||HOME_CATS[0];
+  const LK=cat.key, lkLabel=COLS[idx[LK]].label;
+  const leaders=pool.filter(r=>(r[idx.min]||0)>=600 && r[idx[LK]]!=null).sort((a,b)=>b[idx[LK]]-a[idx[LK]]).slice(0,6);
+  const maxv=leaders.length?Math.max(...leaders.map(r=>r[idx[LK]])):1;
+  const feat=leaders[0];
+  const lgName=lg==="USLC"?"USL Championship":lg==="USL1"?"USL League One":"the Championship &amp; League One";
+  let h=`<div class="hero"><div class="hero-bg"></div><img class="hero-mark light" src="logos/usl_water_light.png" alt=""><img class="hero-mark dark" src="logos/usl_water_dark.png" alt=""><div class="hero-inner"><div class="hero-kick">2026 Season · ${GAMES_SAMPLE?"Sample feed":"Live data"}</div><h2>United Soccer League<br>Performance Index</h2><p>Advanced metrics across ${lgName} — expected goals, goals added, and ball progression for every outfield player.</p></div></div>`;
+  h+=`<div class="dash-stats">`+stats.map(s=>`<div class="statcard"><div class="lab">${IC[s[2]]||""}${s[0]}</div><div class="num"${s[0]==="Players"?' id="m_players"':''}>${s[1]}</div><div class="snote">${s[3]}</div></div>`).join("")+`</div>`;
+  h+=`<div class="catbar">`+HOME_CATS.map(c=>`<button class="catbtn ${c.id===cat.id?'on':''}" data-cat="${c.id}">${c.label}</button>`).join("")+`</div>`;
+  h+=`<div class="dash-grid">`;
+  h+=`<div class="panel"><div class="panel-h"><h3>Top performers</h3><span class="sub">per 90 · min. 600 mins · ${lkLabel}</span></div><div class="lead">`;
+  leaders.forEach((r,i)=>{const v=r[idx[LK]];const w=Math.max(6,Math.round((v/(maxv||1))*100));
+    h+=`<div class="lrow ${i===0?'top':''}"><span class="lrk">${i+1}</span><span class="lcr">${crestBadge(r[idx.tm],26)}</span><div class="lnm"><div class="ln" data-pid="${r[idx.name]}|${r[idx.tm]}">${r[idx.name]}</div><div class="lm">${r[idx.pos]} · ${r[idx.team]}</div></div><span class="lv">${fmt(COLS[idx[LK]],v)}</span><div class="lbar"><i style="width:${w}%"></i></div></div>`;});
+  h+=`</div></div>`;
+  if(feat){const r=feat,pos=r[idx.pos];
+    h+=`<div class="panel spotlight"><div class="panel-h"><h3>Player spotlight</h3><span class="badge-rise">${cat.label}</span></div>`;
+    h+=`<div class="feat-top"><div class="feat-crest">${crestBadge(r[idx.tm],46)}</div><div><div class="feat-name">${r[idx.name]}</div><div class="feat-club">${r[idx.team]}</div></div></div>`;
+    h+=`<div class="feat-pills"><span>${pos}</span><span>Age ${r[idx.age]??"?"}</span><span>${r[idx.min]}&rsquo;</span></div>`;
+    h+=`<div class="feat-mid">${pizzaSVG([r])}<div class="feat-bars">`;
+    cat.bars.forEach(b=>{const p=pctRank(pos,b[1],r[idx[b[1]]]);const w=p==null?0:p;
+      h+=`<div class="feat-bar"><div class="fb-top"><span class="fb-l">${b[0]}</span><span class="fb-v">${p==null?"—":p}<sup>pct</sup></span></div><div class="fb"><i style="width:${w}%;background:var(--pitch)"></i></div></div>`;});
+    h+=`</div></div>`;
+    h+=`<button class="featbtn" data-pid="${r[idx.name]}|${r[idx.tm]}" id="featbtn">View full profile <svg viewBox="0 0 24 24" width="15" height="15" style="stroke:currentColor;stroke-width:2;fill:none"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>`;
+  }
+  h+=`</div>`;
+  h+=`<div class="panel"><div id="results-strip"></div></div>`;
+  host.innerHTML=h;
+  host.querySelectorAll(".catbtn").forEach(b=>b.onclick=()=>{state.homeCat=b.dataset.cat;renderHome();});
+  host.querySelectorAll(".lead .ln,#featbtn").forEach(n=>n.onclick=()=>{const a=n.dataset.pid.split("|");openProfile(DATA.find(r=>r[idx.name]===a[0]&&r[idx.tm]===a[1]));});
+  renderResults();
+}
+
 /* ===== RESULTS & FIXTURES (main page) ===== */
 function renderResults(){
   const host=document.getElementById("results-strip"); if(!host) return;
-  if(!GAMES.length){ host.innerHTML=`<div class="rs-head"><h3>Latest results &amp; fixtures</h3></div><div class="rs-empty">Results appear here once your hosted page runs the daily update.</div>`; return; }
   const lg=state.league;
   const gs=GAMES.filter(g=>!lg||g.lg===lg);
-  const finals=gs.filter(g=>g.hs!=null).sort((a,b)=>b.d.localeCompare(a.d)).slice(0,18);
-  const ups=gs.filter(g=>g.hs==null).sort((a,b)=>a.d.localeCompare(b.d)).slice(0,12);
-  const fdate=d=>{const t=new Date(d+"T00:00:00");return isNaN(t)?d:t.toLocaleDateString(undefined,{month:"short",day:"numeric"});};
-  const line=(ab,sc,lose,up)=>`<div class="gteam ${lose?'lose':''}"><span class="gdot" style="background:${teamColor(ab)}"></span><span class="gab">${ab||""}</span><span class="gsc">${up?"":(sc==null?"":sc)}</span></div>`;
-  const card=g=>{const up=g.hs==null,hw=!up&&g.hs>g.as,aw=!up&&g.as>g.hs;
-    return `<div class="gcard ${up?'up':''}"${up?'':` data-gid="${g.gid||''}"`}>${line(g.h,g.hs,aw,up)}${line(g.a,g.as,hw,up)}<div class="gfoot"><span>${fdate(g.d)}</span><span>${up?'upcoming':'full time'}</span></div></div>`;};
-  let row=finals.map(card).join("");
-  if(finals.length&&ups.length) row+=`<div class="gdiv"></div>`;
-  row+=ups.map(card).join("");
-  if(!finals.length&&!ups.length){ host.innerHTML=`<div class="rs-head"><h3>Latest results &amp; fixtures</h3></div><div class="rs-empty">No matches for this league filter.</div>`; return; }
+  const finalsAll=gs.filter(g=>g.hs!=null).sort((a,b)=>b.d.localeCompare(a.d));
+  const upsAll=gs.filter(g=>g.hs==null).sort((a,b)=>a.d.localeCompare(b.d));
   const sample=GAMES_SAMPLE?`<span class="rs-sample">Sample data</span>`:"";
-  host.innerHTML=`<div class="rs-head"><h3>Latest results &amp; fixtures</h3>${sample}<button class="rs-toggle" id="rstoggle">${state.resultsOpen?'Hide':'Show'}</button></div>${state.resultsOpen?`<div class="rs-row">${row}</div>`:''}`;
-  document.getElementById("rstoggle").onclick=()=>{state.resultsOpen=!state.resultsOpen;renderResults();};
+  if(!GAMES.length||(!finalsAll.length&&!upsAll.length)){
+    host.innerHTML=`<div class="rs-head"><h3>Latest results &amp; fixtures</h3>${sample}</div><div class="rs-empty">${GAMES.length?"No matches for this division filter.":"Results appear here once your hosted page runs the daily update."}</div>`; return;
+  }
+  const open=state.resultsOpen;
+  const finals=open?finalsAll.slice(0,9):finalsAll.slice(0,3);
+  const ups=open?upsAll.slice(0,9):upsAll.slice(0,3);
+  const day=d=>{const t=new Date(d+"T00:00:00");return isNaN(t)?"":t.toLocaleDateString(undefined,{weekday:"short"});};
+  const side=(ab,lose,away)=>`<div class="gc-side ${away?"away":""} ${lose?"lose":""}">${crestBadge(ab,22)}<span class="ab">${ab||""}</span></div>`;
+  const card=g=>{const up=g.hs==null,hw=!up&&g.hs>g.as,aw=!up&&g.as>g.hs;
+    const score=up?`<span class="gc-sc vs">VS</span>`:`<span class="gc-sc">${g.hs}&ndash;${g.as}</span>`;
+    return `<div class="gcard ${up?"up":""}"><div class="gc-top"><span>${up?"Upcoming":"Full time"}</span><span>${day(g.d)}</span></div><div class="gc-body">${side(g.h,aw,false)}${score}${side(g.a,hw,true)}</div></div>`;};
+  const cards=finals.map(card).join("")+ups.map(card).join("");
+  const more=(finalsAll.length+upsAll.length)>6;
+  host.innerHTML=`<div class="rs-head"><h3>Latest results &amp; fixtures</h3>${sample}${more?`<button class="rs-viewall" id="rstoggle">${open?"Show less":"View all →"}</button>`:""}</div><div class="rs-grid">${cards}</div>`;
+  const tg=document.getElementById("rstoggle"); if(tg) tg.onclick=()=>{state.resultsOpen=!state.resultsOpen;renderResults();};
 }
 
 /* wire recruitment-finder controls */
@@ -1032,7 +1237,7 @@ if(COLS && DATA.length){
   renderResults();
   fillTeamSelect();
   fillPlayerList();
-  showTab("players");
+  showTab("home");
 }else{
   document.body.innerHTML =
     '<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:600px;margin:14vh auto;padding:0 28px;color:#15211d;line-height:1.55">'

@@ -182,7 +182,7 @@ svg .ring{fill:none;stroke:var(--line2);stroke-width:.7}
   .scattersvg{min-width:560px}
 }
 .crest{display:inline-flex;align-items:center;justify-content:center;border-radius:5px;font-family:var(--mono);font-weight:700;letter-spacing:.01em;line-height:1;flex:0 0 auto}
-.crestimg{border-radius:5px;object-fit:contain;background:#fff;flex:0 0 auto}
+.crestimg{box-sizing:border-box;border-radius:5px;object-fit:contain;background:#fff;border:1px solid var(--line);padding:1px;flex:0 0 auto}
 .tmdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
 .taccent{height:5px;border-radius:3px;margin:8px 0 2px}
 /* theme toggle */
@@ -253,6 +253,25 @@ svg .ring{fill:none;stroke:var(--line2);stroke-width:.7}
 .gfoot{margin-top:5px;font-family:var(--mono);font-size:9.5px;letter-spacing:.03em;color:var(--ink2);display:flex;justify-content:space-between}
 .gdiv{flex:0 0 auto;width:1px;background:var(--line2);margin:2px 5px}
 .rs-empty{font-family:var(--mono);font-size:11px;color:var(--ink2);letter-spacing:.02em}
+/* match detail modal */
+.gmhdr{display:flex;align-items:center;gap:14px;width:100%}
+.gmside{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:16px;font-weight:700;letter-spacing:.02em}
+.gmside.rev{flex-direction:row-reverse;margin-left:0}
+.gmsc{font-family:var(--mono);font-size:26px;font-weight:800;letter-spacing:.02em;flex:1;text-align:center}
+.gmmeta{font-family:var(--mono);font-size:11px;color:var(--ink2);letter-spacing:.03em;margin-bottom:16px}
+.gmxg{display:flex;align-items:center;gap:10px;margin:4px 0 2px}
+.gmxgv{font-family:var(--mono);font-size:13px;font-weight:700;width:40px;text-align:center}
+.gmxgbar{flex:1;display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--line)}
+.gmxgbar > i,.gmxgbar > b{display:block;height:100%}
+.gmxgl{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);text-align:center;margin:4px 0 6px}
+.gmgoals{font-size:13px;color:var(--ink);margin:2px 0 8px;line-height:1.5}
+.boxtbl{width:100%;border-collapse:separate;border-spacing:0;margin-bottom:6px}
+.boxtbl th{background:none;color:var(--ink2);border:0;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;text-align:right;padding:6px 7px;position:static}
+.boxtbl th.txt{text-align:left}
+.boxtbl td{padding:6px 7px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;text-align:right;font-variant-numeric:tabular-nums}
+.boxtbl td.txt{text-align:left;font-family:var(--sans)}
+.gcard[data-gid]{cursor:pointer;transition:border-color .12s}
+.gcard[data-gid]:hover{border-color:var(--pitch)}
 </style>
 </head>
 <body>
@@ -353,6 +372,7 @@ const COLS = (typeof __COLS__ === "undefined") ? null : __COLS__;
 const DATA = (typeof __DATA__ === "undefined") ? [] : __DATA__;
 const GAMES = (typeof __GAMES__ === "undefined") ? [] : __GAMES__;
 const GAMES_SAMPLE = (typeof __GAMESSAMPLE__ === "undefined") ? false : __GAMESSAMPLE__;
+const GAME_DETAIL = (typeof __GAMEDETAIL__ === "undefined") ? {} : __GAMEDETAIL__;
 </script>
 <script>
 
@@ -389,7 +409,17 @@ const TEAM_COLORS = {
   "SPK":"#0093B2","WES":"#0047BB",
 };
 const TEAM_LOGOS = {
-  // "BHM":"https://example.com/birmingham.png",
+  "ACB":"logos/ACB.png","AVA":"logos/AVA.png","BHM":"logos/BHM.png","BKN":"logos/BKN.png",
+  "CHA":"logos/CHA.png","CHS":"logos/CHS.png","CLT":"logos/CLT.png","COS":"logos/COS.png",
+  "CRP":"logos/CRP.png","DET":"logos/DET.png","ELP":"logos/ELP.png","FCN":"logos/FCN.png",
+  "FW":"logos/FW.png","GVL":"logos/GVL.png","HFD":"logos/HFD.png","IND":"logos/IND.png",
+  "JAX":"logos/JAX.png","KNX":"logos/KNX.png","LDN":"logos/LDN.png","LEX":"logos/LEX.png",
+  "LOU":"logos/LOU.png","LV":"logos/LV.png","MAD":"logos/MAD.png","MB":"logos/MB.png",
+  "MIA":"logos/MIA.png","NC":"logos/NC.png","NM":"logos/NM.png","NYC":"logos/NYC.png",
+  "OAK":"logos/OAK.png","OC":"logos/OC.png","OMA":"logos/OMA.png","PHX":"logos/PHX.png",
+  "PIT":"logos/PIT.png","POR":"logos/POR.png","RI":"logos/RI.png","RIC":"logos/RIC.png",
+  "SA":"logos/SA.png","SAC":"logos/SAC.png","SAR":"logos/SAR.png","SPK":"logos/SPK.png",
+  "TBR":"logos/TBR.png","TUL":"logos/TUL.png","WES":"logos/WES.png",
 };
 function hashHue(s){let h=0;for(let i=0;i<(s||"").length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h%360;}
 function teamColor(tm){ if(TEAM_COLORS[tm]) return TEAM_COLORS[tm]; return `hsl(${hashHue(tm)} 56% 44%)`; }
@@ -978,7 +1008,7 @@ function renderResults(){
   const fdate=d=>{const t=new Date(d+"T00:00:00");return isNaN(t)?d:t.toLocaleDateString(undefined,{month:"short",day:"numeric"});};
   const line=(ab,sc,lose,up)=>`<div class="gteam ${lose?'lose':''}"><span class="gdot" style="background:${teamColor(ab)}"></span><span class="gab">${ab||""}</span><span class="gsc">${up?"":(sc==null?"":sc)}</span></div>`;
   const card=g=>{const up=g.hs==null,hw=!up&&g.hs>g.as,aw=!up&&g.as>g.hs;
-    return `<div class="gcard ${up?'up':''}">${line(g.h,g.hs,aw,up)}${line(g.a,g.as,hw,up)}<div class="gfoot"><span>${fdate(g.d)}</span><span>${up?'upcoming':'full time'}</span></div></div>`;};
+    return `<div class="gcard ${up?'up':''}"${up?'':` data-gid="${g.gid||''}"`}>${line(g.h,g.hs,aw,up)}${line(g.a,g.as,hw,up)}<div class="gfoot"><span>${fdate(g.d)}</span><span>${up?'upcoming':'full time'}</span></div></div>`;};
   let row=finals.map(card).join("");
   if(finals.length&&ups.length) row+=`<div class="gdiv"></div>`;
   row+=ups.map(card).join("");

@@ -193,6 +193,65 @@ for _, r in df.iterrows():
 full = pd.DataFrame(rows)
 note(f"Assembled {len(full)} player rows.")
 
+# ---------- defensive counting stats from Sofascore (graceful: optional) ----------
+import re, unicodedata
+
+def _norm(s):
+    s = unicodedata.normalize("NFKD", str(s or "")).encode("ascii", "ignore").decode()
+    s = re.sub(r"[^a-z ]", "", s.lower())
+    return re.sub(r"\s+", " ", s).strip()
+
+DEF_KEYS = {"tkl", "intc", "clr", "tkl90", "intc90", "clr90", "tip90"}
+DEF_BY_KEY = {}   # (norm_name, lg_short) -> {tkl,intc,clr,min}
+DEF_OK = False
+try:
+    from datafc import search_data, seasons_data, league_player_stats_data
+    for q, lgshort in [("USL Championship", "USLC"), ("USL League One", "USL1")]:
+        try:
+            td = search_data(q, entity_type="tournament")
+            tid = int(td.iloc[0]["id"])
+            sd = seasons_data(tid)
+            sid = None
+            for _, srow in sd.iterrows():
+                yr = str(srow.get("year", "")) + str(srow.get("name", ""))
+                if str(SEASON) in yr:
+                    sid = int(srow["id"]); break
+            if sid is None:
+                sid = int(sd.iloc[0]["id"])
+            dfp = league_player_stats_data(
+                tid, sid, order="-tackles",
+                fields=["tackles", "interceptions", "clearances", "minutesPlayed"],
+                max_players=1000)
+            got = 0
+            for _, pr in dfp.iterrows():
+                k = (_norm(pr.get("player_name")), lgshort)
+                DEF_BY_KEY[k] = {
+                    "tkl": num(pr.get("tackles")), "intc": num(pr.get("interceptions")),
+                    "clr": num(pr.get("clearances")), "min": num(pr.get("minutesPlayed"))}
+                got += 1
+            note(f"Sofascore {lgshort}: {got} player rows (tid={tid}, sid={sid}).")
+            DEF_OK = DEF_OK or got > 0
+        except Exception as e:
+            note(f"Sofascore defensive fetch failed for {q}: {e}")
+except Exception as e:
+    note(f"datafc not available — defensive stats skipped: {e}")
+
+def def_value(key, drec):
+    if not drec:
+        return None
+    mins = drec.get("min") or 0
+    if key == "tkl":  return vi(drec.get("tkl"))
+    if key == "intc": return vi(drec.get("intc"))
+    if key == "clr":  return vi(drec.get("clr"))
+    if mins and mins > 0:
+        t = drec.get("tkl") or 0; i = drec.get("intc") or 0; c = drec.get("clr") or 0
+        if key == "tkl90":  return vr(t / mins * 90)
+        if key == "intc90": return vr(i / mins * 90)
+        if key == "clr90":  return vr(c / mins * 90)
+        if key == "tip90":  return vr((t + i) / mins * 90)
+    return None
+
+
 # ---------- build dashboard rows/cols (same layout as the original) ----------
 INT, DEC, ONE, PCT, AGE = "int", "dec2", "dec2", "pct", "int"
 cfg = [
@@ -227,6 +286,11 @@ cfg = [
  ("gpd_a","g+ Drib vsAvg","Goals Added","metric","dec2",True,False),("gpp_a","g+ Pass vsAvg","Goals Added","metric","dec2",True,True),
  ("gpr_a","g+ Recv vsAvg","Goals Added","metric","dec2",True,True),("gpsh_a","g+ Shoot vsAvg","Goals Added","metric","dec2",True,False),
  ("gpi_a","g+ Intrpt vsAvg","Goals Added","metric","dec2",True,True),("gpf_a","g+ Foul vsAvg","Goals Added","metric","dec2",True,False),
+ # ---- defensive counting stats (Sofascore) — keep in sync with defense.py DEF_CFG ----
+ ("tkl","Tackles","Defending","metric","int",True,False),("intc","Interceptions","Defending","metric","int",True,False),
+ ("clr","Clearances","Defending","metric","int",True,False),
+ ("tkl90","Tackles/90","Defending","metric","dec2",True,True),("intc90","Interceptions/90","Defending","metric","dec2",True,True),
+ ("clr90","Clearances/90","Defending","metric","dec2",True,True),("tip90","Tkl+Int/90","Defending","metric","dec2",True,True),
 ]
 src = {
  "name":"player_name","tm":"team_abbreviation","team":"team_name","pos":"general_position",
@@ -252,13 +316,21 @@ def vs(x):  return None if (x is None or (isinstance(x, float) and pd.isna(x))) 
 fmt_fn = {"int": vi, "dec2": vr, "pct": vr, "dist": vr, "str": vs}
 
 data_rows = []
+def_matched = 0
 for _, r in full.iterrows():
+    lg_short = LG_SHORT.get(r["league_name"], r["league_name"])
+    drec = DEF_BY_KEY.get((_norm(r["player_name"]), lg_short))
+    if drec:
+        def_matched += 1
     rec = []
     for key, label, grp, role, fmt, hib, piz in cfg:
         if key == "lg":
-            rec.append(LG_SHORT.get(r["league_name"], r["league_name"])); continue
+            rec.append(lg_short); continue
+        if key in DEF_KEYS:
+            rec.append(def_value(key, drec)); continue
         rec.append(fmt_fn[fmt](r[src[key]]))
     data_rows.append(rec)
+note(f"Defensive stats matched to {def_matched}/{len(full)} players (Sofascore ok={DEF_OK}).")
 
 cols_js = [{"key": k, "label": l, "group": g, "role": ro, "fmt": f, "hib": h, "pizza": p}
            for (k, l, g, ro, f, h, p) in cfg]
@@ -304,7 +376,8 @@ out = (template
        .replace("__COLS__", json.dumps(cols_js, separators=(",", ":")))
        .replace("__DATA__", json.dumps(data_rows, separators=(",", ":")))
        .replace("__GAMES__", json.dumps(GAMES, separators=(",", ":")))
-       .replace("__GAMESSAMPLE__", "false"))
+       .replace("__GAMESSAMPLE__", "false")
+       .replace("__DEFSAMPLE__", "false"))
 open("index.html", "w", encoding="utf-8").write(out)
 
 stamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")

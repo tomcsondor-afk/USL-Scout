@@ -46,12 +46,14 @@ def col(df, name):
     return df[name] if name in df.columns else pd.Series([np.nan] * len(df))
 
 # ---- team metadata + which league each team is in ----
-team_lg, team_full, team_abbr = {}, {}, {}
+team_lg, team_full, team_abbr, team_lg_short = {}, {}, {}, {}
+LG_SHORT_CODE = {"uslc": "USLC", "usl1": "USL1"}
 for lg in LEAGUES:
     try:
         t = client.get_teams(leagues=lg)
         for _, r in t.iterrows():
             team_lg[r["team_id"]]   = LG_NAME[lg]
+            team_lg_short[r["team_id"]] = LG_SHORT_CODE.get(lg, lg.upper())
             team_full[r["team_id"]] = r.get("team_name")
             team_abbr[r["team_id"]] = r.get("team_abbreviation")
     except Exception as e:
@@ -261,10 +263,48 @@ for _, r in full.iterrows():
 cols_js = [{"key": k, "label": l, "group": g, "role": ro, "fmt": f, "hib": h, "pizza": p}
            for (k, l, g, ro, f, h, p) in cfg]
 
+# ---- results & fixtures (games) ----
+GAMES = []
+games_raw = get("get_games", season_name=SEASON)
+if not games_raw.empty:
+    note("games columns: " + ", ".join(map(str, games_raw.columns)))
+    def firstcol(cands):
+        for c in cands:
+            if c in games_raw.columns:
+                return c
+        return None
+    c_home = firstcol(["home_team_id", "home_team", "homeTeamId"])
+    c_away = firstcol(["away_team_id", "away_team", "awayTeamId"])
+    c_date = firstcol(["date_time_utc", "datetime_utc", "date_time", "game_date", "date"])
+    c_hs   = firstcol(["home_score", "home_goals", "home_score_total", "score_home"])
+    c_as   = firstcol(["away_score", "away_goals", "away_score_total", "score_away"])
+    note(f"games fields -> home:{c_home} away:{c_away} date:{c_date} score:{c_hs}/{c_as}")
+    for _, g in games_raw.iterrows():
+        hid = g.get(c_home) if c_home else None
+        aid = g.get(c_away) if c_away else None
+        h, a = team_abbr.get(hid), team_abbr.get(aid)
+        d = str(g.get(c_date) or "")[:10] if c_date else ""
+        if not (h and a and d):
+            continue
+        hs = g.get(c_hs) if c_hs else None
+        as_ = g.get(c_as) if c_as else None
+        final = (hs is not None and pd.notna(hs) and as_ is not None and pd.notna(as_))
+        GAMES.append({"h": h, "a": a, "d": d, "lg": team_lg_short.get(hid),
+                      "hs": int(hs) if final else None, "as": int(as_) if final else None})
+    GAMES.sort(key=lambda r: r["d"])
+    fin = [r for r in GAMES if r["hs"] is not None][-60:]
+    up  = [r for r in GAMES if r["hs"] is None][:40]
+    GAMES = fin + up
+    note(f"Loaded {len(fin)} results + {len(up)} upcoming fixtures.")
+else:
+    note("get_games returned nothing — results section will be empty this run.")
+
 template = open("template.html", encoding="utf-8").read()
 out = (template
        .replace("__COLS__", json.dumps(cols_js, separators=(",", ":")))
-       .replace("__DATA__", json.dumps(data_rows, separators=(",", ":"))))
+       .replace("__DATA__", json.dumps(data_rows, separators=(",", ":")))
+       .replace("__GAMES__", json.dumps(GAMES, separators=(",", ":")))
+       .replace("__GAMESSAMPLE__", "false"))
 open("index.html", "w", encoding="utf-8").write(out)
 
 stamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")

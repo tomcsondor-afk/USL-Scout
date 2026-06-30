@@ -193,48 +193,70 @@ for _, r in df.iterrows():
 full = pd.DataFrame(rows)
 note(f"Assembled {len(full)} player rows.")
 
-# ---------- defensive counting stats from Sofascore (graceful: optional) ----------
-import re, unicodedata
+# ---------- defensive counting stats from API-Football (graceful: optional) ----------
+import re, unicodedata, os, time, json as _json
+import urllib.request, urllib.error
 
 def _norm(s):
     s = unicodedata.normalize("NFKD", str(s or "")).encode("ascii", "ignore").decode()
     s = re.sub(r"[^a-z ]", "", s.lower())
     return re.sub(r"\s+", " ", s).strip()
 
-DEF_KEYS = {"tkl", "intc", "clr", "tkl90", "intc90", "clr90", "tip90"}
-DEF_BY_KEY = {}   # (norm_name, lg_short) -> {tkl,intc,clr,min}
+DEF_KEYS = {"tkl", "intc", "blk", "tkl90", "intc90", "blk90", "tip90"}
+DEF_BY_KEY = {}   # (norm_name, lg_short) -> {tkl,intc,blk,min}
 DEF_OK = False
-try:
-    from datafc import search_data, seasons_data, league_player_stats_data
-    for q, lgshort in [("USL Championship", "USLC"), ("USL League One", "USL1")]:
-        try:
-            td = search_data(q, entity_type="tournament")
-            tid = int(td.iloc[0]["id"])
-            sd = seasons_data(tid)
-            sid = None
-            for _, srow in sd.iterrows():
-                yr = str(srow.get("year", "")) + str(srow.get("name", ""))
-                if str(SEASON) in yr:
-                    sid = int(srow["id"]); break
-            if sid is None:
-                sid = int(sd.iloc[0]["id"])
-            dfp = league_player_stats_data(
-                tid, sid, order="-tackles",
-                fields=["tackles", "interceptions", "clearances", "minutesPlayed"],
-                max_players=1000)
-            got = 0
-            for _, pr in dfp.iterrows():
-                k = (_norm(pr.get("player_name")), lgshort)
-                DEF_BY_KEY[k] = {
-                    "tkl": num(pr.get("tackles")), "intc": num(pr.get("interceptions")),
-                    "clr": num(pr.get("clearances")), "min": num(pr.get("minutesPlayed"))}
-                got += 1
-            note(f"Sofascore {lgshort}: {got} player rows (tid={tid}, sid={sid}).")
-            DEF_OK = DEF_OK or got > 0
-        except Exception as e:
-            note(f"Sofascore defensive fetch failed for {q}: {e}")
-except Exception as e:
-    note(f"datafc not available — defensive stats skipped: {e}")
+
+API_KEY = os.environ.get("APIFOOTBALL_KEY", "").strip()
+API_BASE = "https://v3.football.api-sports.io"
+
+def _api_get(path):
+    req = urllib.request.Request(API_BASE + path, headers={"x-apisports-key": API_KEY})
+    with urllib.request.urlopen(req, timeout=45) as r:
+        return _json.loads(r.read().decode())
+
+if not API_KEY:
+    note("APIFOOTBALL_KEY secret not set — defensive stats skipped (everything else still builds).")
+else:
+    try:
+        lj = _api_get("/leagues?country=USA&type=League")
+        targets = {}  # league_id -> (lg_short, season_year)
+        for item in lj.get("response", []):
+            nm = (item.get("league", {}).get("name") or "").lower()
+            seasons = item.get("seasons", []) or []
+            cur = next((s for s in seasons if s.get("current")), seasons[-1] if seasons else None)
+            if not cur:
+                continue
+            yr = cur.get("year")
+            if "championship" in nm:
+                targets[item["league"]["id"]] = ("USLC", yr)
+            elif "league one" in nm or "league 1" in nm:
+                targets[item["league"]["id"]] = ("USL1", yr)
+        note(f"API-Football USL leagues: {sorted(targets.values())}")
+        for lid, (lgshort, yr) in targets.items():
+            page, total, pulled = 1, 1, 0
+            while page <= total and page <= 45:
+                try:
+                    pj = _api_get(f"/players?league={lid}&season={yr}&page={page}")
+                except urllib.error.HTTPError as he:
+                    note(f"API-Football {lgshort} page {page} HTTP {he.code}; stopping league.")
+                    break
+                total = (pj.get("paging", {}) or {}).get("total", 1) or 1
+                for pl in pj.get("response", []):
+                    nm = (pl.get("player", {}) or {}).get("name")
+                    stats = pl.get("statistics") or [{}]
+                    st = stats[0] if stats else {}
+                    tk = st.get("tackles", {}) or {}
+                    gm = st.get("games", {}) or {}
+                    DEF_BY_KEY[(_norm(nm), lgshort)] = {
+                        "tkl": num(tk.get("total")), "intc": num(tk.get("interceptions")),
+                        "blk": num(tk.get("blocks")), "min": num(gm.get("minutes"))}
+                    pulled += 1
+                page += 1
+                time.sleep(7)  # respect free-tier rate limit (10 req/min)
+            note(f"API-Football {lgshort}: {pulled} players (league {lid}, season {yr}).")
+            DEF_OK = DEF_OK or pulled > 0
+    except Exception as e:
+        note(f"API-Football defensive fetch failed: {e}")
 
 def def_value(key, drec):
     if not drec:
@@ -242,12 +264,12 @@ def def_value(key, drec):
     mins = drec.get("min") or 0
     if key == "tkl":  return vi(drec.get("tkl"))
     if key == "intc": return vi(drec.get("intc"))
-    if key == "clr":  return vi(drec.get("clr"))
+    if key == "blk":  return vi(drec.get("blk"))
     if mins and mins > 0:
-        t = drec.get("tkl") or 0; i = drec.get("intc") or 0; c = drec.get("clr") or 0
+        t = drec.get("tkl") or 0; i = drec.get("intc") or 0; b = drec.get("blk") or 0
         if key == "tkl90":  return vr(t / mins * 90)
         if key == "intc90": return vr(i / mins * 90)
-        if key == "clr90":  return vr(c / mins * 90)
+        if key == "blk90":  return vr(b / mins * 90)
         if key == "tip90":  return vr((t + i) / mins * 90)
     return None
 
@@ -286,11 +308,11 @@ cfg = [
  ("gpd_a","g+ Drib vsAvg","Goals Added","metric","dec2",True,False),("gpp_a","g+ Pass vsAvg","Goals Added","metric","dec2",True,True),
  ("gpr_a","g+ Recv vsAvg","Goals Added","metric","dec2",True,True),("gpsh_a","g+ Shoot vsAvg","Goals Added","metric","dec2",True,False),
  ("gpi_a","g+ Intrpt vsAvg","Goals Added","metric","dec2",True,True),("gpf_a","g+ Foul vsAvg","Goals Added","metric","dec2",True,False),
- # ---- defensive counting stats (Sofascore) — keep in sync with defense.py DEF_CFG ----
+ # ---- defensive counting stats (API-Football) — keep in sync with defense.py DEF_CFG ----
  ("tkl","Tackles","Defending","metric","int",True,False),("intc","Interceptions","Defending","metric","int",True,False),
- ("clr","Clearances","Defending","metric","int",True,False),
+ ("blk","Blocks","Defending","metric","int",True,False),
  ("tkl90","Tackles/90","Defending","metric","dec2",True,True),("intc90","Interceptions/90","Defending","metric","dec2",True,True),
- ("clr90","Clearances/90","Defending","metric","dec2",True,True),("tip90","Tkl+Int/90","Defending","metric","dec2",True,True),
+ ("blk90","Blocks/90","Defending","metric","dec2",True,True),("tip90","Tkl+Int/90","Defending","metric","dec2",True,True),
 ]
 src = {
  "name":"player_name","tm":"team_abbreviation","team":"team_name","pos":"general_position",

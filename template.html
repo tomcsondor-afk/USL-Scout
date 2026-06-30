@@ -570,7 +570,7 @@ const PRESETS = {
   shooting:{cols:["shots","sot","goals","xg","gxg","gps","shp90","gp90","xgp90"], sort:"xgp90"},
   creation:{cols:["kp","ast","xa","axa","kpp90","astp90","xap90","gap90"], sort:"xap90"},
   passing:{cols:["patt","ppct","xppct","poe","poe100","adist","vdist","tsh"], sort:"poe100"},
-  defending:{cols:["tkl","intc","clr","tkl90","intc90","clr90","tip90","gpi"], sort:"tip90"},
+  defending:{cols:["tkl","intc","blk","tkl90","intc90","blk90","tip90","gpi"], sort:"tip90"},
   ga:{cols:["graw","gaa","gp90r","gpd_a","gpp_a","gpr_a","gpsh_a","gpi_a","gpf_a"], sort:"gaa"}
 };
 const ID_SHOWN=["pos","age","min"]; // always-on id metrics besides name/tm
@@ -580,7 +580,7 @@ const PIZZA_ARCS = [
   {name:"Attacking", keys:["gp90","xgp90","shp90","gxg"]},
   {name:"Creating", keys:["astp90","xap90","kpp90","gap90"]},
   {name:"Possession", keys:["ppct","poe100","tsh","gp90r"]},
-  {name:"Defending", keys:["tkl90","intc90","clr90","gpi"]}
+  {name:"Defending", keys:["tkl90","intc90","blk90","gpi"]}
 ];
 
 /* ---------- state ---------- */
@@ -801,7 +801,7 @@ function openProfile(r){
   GROUPS.forEach(g=>{
     const ms=METRICS.filter(c=>c.group===g);
     if(!ms.length) return;
-    const tag=(g==="Defending")?` <span class="sample-tag">${DEF_SAMPLE?"sample":"Sofascore"}</span>`:"";
+    const tag=(g==="Defending")?` <span class="sample-tag">${DEF_SAMPLE?"sample":"API-Football"}</span>`:"";
     html+=`<div class="sech">${g}${tag}</div><div class="statgrid">`;
     ms.forEach(c=>{
       const v=r[idx[c.key]];
@@ -1068,7 +1068,7 @@ document.getElementById("poschips").addEventListener("click",()=>{if(state.tab==
 const ts=document.getElementById("topsearch");if(ts){ts.oninput=()=>{const s=document.getElementById("search");if(s)s.value=ts.value;state.search=ts.value;if(state.tab!=="players")showTab("players");update();};}})();
 
 /* ===== RECRUITMENT FINDER (similar players) ===== */
-const SIM_METRICS=["gp90","xgp90","shp90","gxg","astp90","xap90","kpp90","gap90","ppct","poe100","tsh","gp90r","tkl90","intc90","clr90"];
+const SIM_METRICS=["gp90","xgp90","shp90","gxg","astp90","xap90","kpp90","gap90","ppct","poe100","tsh","gp90r","tkl90","intc90","blk90"];
 let curProfile=null;
 const simLabel=r=>`${r[idx.name]} (${r[idx.tm]})`;
 let simByLabel={};
@@ -1147,7 +1147,7 @@ const HOME_CATS=[
   {id:"assist",label:"Assisters",        key:"astp90",bars:[["Assists/90","astp90"],["xA/90","xap90"],["Key passes/90","kpp90"]]},
   {id:"ball",  label:"Ball progression", key:"gpp",   bars:[["g+ Pass","gpp"],["Pass%","ppct"],["Pass +/-","poe100"]]},
   {id:"drib",  label:"Dribblers",        key:"gpd",   bars:[["g+ Drib","gpd"],["g+ Recv","gpr"],["g+ /90","gp90r"]]},
-  {id:"def",   label:"Defending",        key:"tip90", bars:[["Tackles/90","tkl90"],["Interceptions/90","intc90"],["Clearances/90","clr90"]]},
+  {id:"def",   label:"Defending",        key:"tip90", bars:[["Tackles/90","tkl90"],["Interceptions/90","intc90"],["Blocks/90","blk90"]]},
 ];
 function renderHome(){
   const host=document.getElementById("view-home"); if(!host) return;
@@ -1182,7 +1182,7 @@ function renderHome(){
   h+=`<div class="dash-stats">`+stats.map(s=>`<div class="statcard"><div class="lab">${IC[s[2]]||""}${s[0]}</div><div class="num"${s[0]==="Players"?' id="m_players"':''}>${s[1]}</div><div class="snote">${s[3]}</div></div>`).join("")+`</div>`;
   h+=`<div class="catbar">`+HOME_CATS.map(c=>`<button class="catbtn ${c.id===cat.id?'on':''}" data-cat="${c.id}">${c.label}</button>`).join("")+`</div>`;
   h+=`<div class="dash-grid">`;
-  h+=`<div class="panel"><div class="panel-h"><h3>Top performers</h3><span class="sub">per 90 · min. 600 mins · ${lkLabel}${cat.id==="def"?` · ${DEF_SAMPLE?"defensive: sample":"defensive: Sofascore"}`:""}</span></div><div class="lead">`;
+  h+=`<div class="panel"><div class="panel-h"><h3>Top performers</h3><span class="sub">per 90 · min. 600 mins · ${lkLabel}${cat.id==="def"?` · ${DEF_SAMPLE?"defensive: sample":"defensive: API-Football"}`:""}</span></div><div class="lead">`;
   leaders.forEach((r,i)=>{const v=r[idx[LK]];const w=Math.max(6,Math.round((v/(maxv||1))*100));
     h+=`<div class="lrow ${i===0?'top':''}"><span class="lrk">${i+1}</span><span class="lcr">${crestBadge(r[idx.tm],26)}</span><div class="lnm"><div class="ln" data-pid="${r[idx.name]}|${r[idx.tm]}">${r[idx.name]}</div><div class="lm">${r[idx.pos]} · ${r[idx.team]}</div></div><span class="lv">${fmt(COLS[idx[LK]],v)}</span><div class="lbar"><i style="width:${w}%"></i></div></div>`;});
   h+=`</div></div>`;

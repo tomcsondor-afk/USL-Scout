@@ -25,6 +25,8 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt
       - run: python refresh.py
+        env:
+          APIFOOTBALL_KEY: ${{ secrets.APIFOOTBALL_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .

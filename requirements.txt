@@ -1,4 +1,3 @@
 itscalledsoccer
 pandas
 numpy
-datafc

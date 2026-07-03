@@ -366,6 +366,13 @@ cols_js = [{"key": k, "label": l, "group": g, "role": ro, "fmt": f, "hib": h, "p
 
 # ---- results & fixtures (games) ----
 GAMES = []
+# league per club from THIS season's rosters (authoritative; ASA team lists include historical members)
+ABBR_LG = {}
+for _, r in full.iterrows():
+    ab = r.get("team_abbreviation")
+    if ab and ab not in ABBR_LG:
+        ABBR_LG[ab] = LG_SHORT.get(r["league_name"], r["league_name"])
+
 games_raw = get("get_games", season_name=SEASON)
 if not games_raw.empty:
     note("games columns: " + ", ".join(map(str, games_raw.columns)))
@@ -390,7 +397,8 @@ if not games_raw.empty:
         hs = g.get(c_hs) if c_hs else None
         as_ = g.get(c_as) if c_as else None
         final = (hs is not None and pd.notna(hs) and as_ is not None and pd.notna(as_))
-        GAMES.append({"h": h, "a": a, "d": d, "lg": team_lg_short.get(hid),
+        GAMES.append({"h": h, "a": a, "d": d,
+                      "lg": ABBR_LG.get(h) or team_lg_short.get(hid),
                       "hs": int(hs) if final else None, "as": int(as_) if final else None})
     GAMES.sort(key=lambda r: r["d"])
     fin = [r for r in GAMES if r["hs"] is not None]           # full season — standings need every result

@@ -47,17 +47,24 @@ def col(df, name):
 
 # ---- team metadata + which league each team is in ----
 team_lg, team_full, team_abbr, team_lg_short = {}, {}, {}, {}
+CONF_MAP = {}   # team abbr -> conference name (if ASA exposes one)
 LG_SHORT_CODE = {"uslc": "USLC", "usl1": "USL1"}
 for lg in LEAGUES:
     try:
         t = client.get_teams(leagues=lg)
+        conf_col = next((c for c in t.columns if "conference" in str(c).lower()), None)
+        if conf_col:
+            note(f"get_teams({lg}) conference column: {conf_col}")
         for _, r in t.iterrows():
             team_lg[r["team_id"]]   = LG_NAME[lg]
             team_lg_short[r["team_id"]] = LG_SHORT_CODE.get(lg, lg.upper())
             team_full[r["team_id"]] = r.get("team_name")
             team_abbr[r["team_id"]] = r.get("team_abbreviation")
+            if conf_col and pd.notna(r.get(conf_col)) and r.get("team_abbreviation"):
+                CONF_MAP[r.get("team_abbreviation")] = str(r.get(conf_col))
     except Exception as e:
         note(f"get_teams({lg}) failed: {e}")
+note(f"Conference info for {len(CONF_MAP)} teams." if CONF_MAP else "No conference column in ASA teams feed; table will be combined.")
 
 # ---- player metadata ----
 pmeta = {}
@@ -386,10 +393,10 @@ if not games_raw.empty:
         GAMES.append({"h": h, "a": a, "d": d, "lg": team_lg_short.get(hid),
                       "hs": int(hs) if final else None, "as": int(as_) if final else None})
     GAMES.sort(key=lambda r: r["d"])
-    fin = [r for r in GAMES if r["hs"] is not None][-60:]
+    fin = [r for r in GAMES if r["hs"] is not None]           # full season — standings need every result
     up  = [r for r in GAMES if r["hs"] is None][:40]
     GAMES = fin + up
-    note(f"Loaded {len(fin)} results + {len(up)} upcoming fixtures.")
+    note(f"Loaded {len(fin)} results (full season) + {len(up)} upcoming fixtures.")
 else:
     note("get_games returned nothing — results section will be empty this run.")
 
@@ -398,6 +405,7 @@ out = (template
        .replace("__COLS__", json.dumps(cols_js, separators=(",", ":")))
        .replace("__DATA__", json.dumps(data_rows, separators=(",", ":")))
        .replace("__GAMES__", json.dumps(GAMES, separators=(",", ":")))
+       .replace("__CONF__", json.dumps(CONF_MAP, separators=(",", ":")))
        .replace("__GAMESSAMPLE__", "false")
        .replace("__DEFSAMPLE__", "false"))
 open("index.html", "w", encoding="utf-8").write(out)

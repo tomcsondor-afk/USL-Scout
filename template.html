@@ -1381,10 +1381,12 @@ function renderShortlist(){
 }
 
 /* ===== LEAGUE TABLE (computed from results feed) ===== */
-const TEAM_NAME={}; DATA.forEach(r=>{if(r[idx.tm]&&!TEAM_NAME[r[idx.tm]])TEAM_NAME[r[idx.tm]]=r[idx.team];});
+const TEAM_NAME={},TEAM_LG={}; DATA.forEach(r=>{if(r[idx.tm]){if(!TEAM_NAME[r[idx.tm]])TEAM_NAME[r[idx.tm]]=r[idx.team];if(!TEAM_LG[r[idx.tm]])TEAM_LG[r[idx.tm]]=r[idx.lg];}});
 function computeStandings(lg){
   const T={};
-  const gs=GAMES.filter(g=>g.hs!=null&&g.lg===lg).sort((a,b)=>a.d.localeCompare(b.d));
+  // A league match = both clubs are members of that division THIS season
+  // (excludes cross-league cup ties and games mis-tagged via historical membership)
+  const gs=GAMES.filter(g=>g.hs!=null&&TEAM_LG[g.h]===lg&&TEAM_LG[g.a]===lg).sort((a,b)=>a.d.localeCompare(b.d));
   const get=ab=>T[ab]||(T[ab]={tm:ab,P:0,W:0,D:0,L:0,GF:0,GA:0,form:[]});
   gs.forEach(g=>{
     const H=get(g.h),A=get(g.a);

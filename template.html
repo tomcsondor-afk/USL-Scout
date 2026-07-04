@@ -461,6 +461,24 @@ svg .ring{fill:none;stroke:var(--line2);stroke-width:.7}
 .fchip{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:4px;font-style:normal;font-family:var(--sans);font-size:8.5px;font-weight:700;color:#fff;margin-right:3px}
 .fchip.w{background:#2fae6e}.fchip.d{background:#7c828c}.fchip.l{background:#c05252}
 .stgnote{font-size:10.5px;color:var(--ink2);margin-top:10px}
+/* ===== scout search ===== */
+.askhero{background:radial-gradient(80% 140% at 90% -20%,rgba(255,122,24,.14),var(--card) 60%);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow);margin-bottom:16px}
+.askhero h3{margin:0 0 13px;font-size:17px;font-weight:800}
+.askrow{display:flex;gap:9px}
+#askq{flex:1;font-size:14px;padding:12px 14px;border-radius:11px}
+.askex{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
+.asknote{font-size:10.5px;color:var(--ink2);margin-top:11px;line-height:1.5}
+.askint{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:11px;color:var(--ink2);margin:0 0 14px}
+.askmiss{color:var(--pitch);font-weight:600}
+.askgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.askcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 15px;cursor:pointer;box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.045);transition:.12s}
+.askcard:hover{border-color:var(--pitch);transform:translateY(-2px)}
+.askc-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.askrk{font-family:var(--display);font-size:14px;color:var(--ink2);width:16px;text-align:center;flex:0 0 auto}
+.askc-n{flex:1;min-width:0}
+.askc-name{font-weight:800;font-size:13.5px}
+.askc-meta{font-size:10.5px;color:var(--ink2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.askscore{font-family:var(--display);font-size:19px;color:var(--pitch);flex:0 0 auto}
 @media (max-width:1080px){.stggrid{grid-template-columns:1fr}}
 @media (max-width:1080px){.dash-stats{grid-template-columns:repeat(2,1fr)}.dash-grid{grid-template-columns:1fr}.rs-grid{grid-template-columns:1fr}.hero-inner h2{font-size:32px}}
 /* ===== craft layer ===== */
@@ -530,6 +548,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-v
       <button class="navi" data-t="players"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><path d="M16 7h5M16 11h5M18 15h3"/></svg>Players<span class="dot"></span></button>
       <button class="navi" data-t="scatter"><svg viewBox="0 0 24 24"><path d="M4 4v16h16"/><circle cx="9" cy="14" r="1.7"/><circle cx="14" cy="9" r="1.7"/><circle cx="18" cy="13" r="1.7"/></svg>Scatter<span class="dot"></span></button>
       <button class="navi" data-t="similar"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3.2"/><circle cx="16" cy="16" r="3.2"/><path d="M10.4 10.4l3.2 3.2"/></svg>Similar<span class="dot"></span></button>
+      <button class="navi" data-t="ask"><svg viewBox="0 0 24 24"><path d="M5 3l1.2 2.8L9 7l-2.8 1.2L5 11 3.8 8.2 1 7l2.8-1.2z"/><circle cx="14.5" cy="13.5" r="5.5"/><path d="M18.6 17.6L22 21"/></svg>Scout search<span class="dot"></span></button>
       <button class="navi" data-t="table"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="4" cy="6" r="0.5"/></svg>Table<span class="dot"></span></button>
       <button class="navi" data-t="shortlist"><svg viewBox="0 0 24 24"><path d="M12 3.6l2.5 5.1 5.6.8-4 3.9.9 5.6-5-2.6-5 2.6.9-5.6-4-3.9 5.6-.8z"/></svg>Shortlist<span class="navct" id="slnavct" style="display:none"></span><span class="dot"></span></button>
       <button class="navi" data-t="teams"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4-3 7-7 9-4-2-7-5-7-9V6z"/></svg>Teams<span class="dot"></span></button>
@@ -591,6 +610,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-v
       <div id="view-similar" class="view" style="display:none"></div>
       <div id="view-teams" class="view" style="display:none"></div>
       <div id="view-table" class="view" style="display:none"></div>
+      <div id="view-ask" class="view" style="display:none"></div>
       <div id="view-shortlist" class="view" style="display:none"></div>
     </div>
   </main>
@@ -1036,16 +1056,17 @@ const VIEW_TITLES={
   similar:["Recruitment finder","Discover"],
   teams:["Teams","Squads"],
   table:["League table","Standings"],
+  ask:["Scout search","Find a profile"],
   shortlist:["Shortlist","Watchlist"]
 };
 function showTab(t){
   state.tab=t;
   document.querySelectorAll(".navi").forEach(b=>b.classList.toggle("on",b.dataset.t===t));
-  ["home","players","scatter","similar","teams","table","shortlist"].forEach(v=>{const el=document.getElementById("view-"+v);if(el)el.style.display=(v===t)?"":"none";});
+  ["home","players","scatter","similar","teams","table","shortlist","ask"].forEach(v=>{const el=document.getElementById("view-"+v);if(el)el.style.display=(v===t)?"":"none";});
   const ti=VIEW_TITLES[t]||["",""];
   document.getElementById("viewtitle").textContent=ti[0];
   {const vs=document.getElementById("viewsub");if(vs)vs.textContent=ti[1];}
-  document.querySelector(".rail").style.display=(t==="home"||t==="table"||t==="shortlist")?"none":"flex";
+  document.querySelector(".rail").style.display=(t==="home"||t==="table"||t==="shortlist"||t==="ask")?"none":"flex";
   const setd=(cls,show)=>document.querySelectorAll(cls).forEach(e=>e.style.display=show?"flex":"none");
   setd(".tab-players",t==="players"); setd(".tab-ps",t==="players"||t==="scatter");
   setd(".tab-scatter",t==="scatter"); setd(".tab-teams",t==="teams"); setd(".tab-similar",t==="similar");
@@ -1054,6 +1075,7 @@ function showTab(t){
   if(t==="similar") renderSimilar();
   if(t==="teams"){ fillTeamSelect(); renderTeams(); }
   if(t==="table") renderLeagueTable();
+  if(t==="ask") renderAsk();
   if(t==="shortlist") renderShortlist();
 }
 document.querySelectorAll(".navi").forEach(b=>b.onclick=()=>showTab(b.dataset.t));
@@ -1434,6 +1456,105 @@ function renderLeagueTable(){
   h+=`</div>`;
   host.innerHTML=h;
   host.querySelectorAll(".stgname").forEach(n=>n.onclick=()=>{const full=TEAM_NAME[n.dataset.tm];if(full){state.team=full;showTab("teams");}});
+}
+
+/* ===== SCOUT SEARCH (natural-language query parser) ===== */
+const ASK_POS=[
+  [/wing\s?back|wing-back/,"FB"],[/full\s?-?back|left\s?-?back|right\s?-?back|\bfb\b/,"FB"],
+  [/winger|wide (?:man|player|forward)|\bwing\b/,"W"],
+  [/striker|centre\s?-?forward|center\s?-?forward|forward|no\.?\s?9|number 9|\bst\b/,"ST"],
+  [/attacking mid\w*|playmaker|no\.?\s?10|number 10|\bam\b/,"AM"],
+  [/defensive mid\w*|holding mid\w*|anchor|no\.?\s?6|number 6|\bdm\b/,"DM"],
+  [/central mid\w*|centre mid\w*|center mid\w*|box[- ]to[- ]box|no\.?\s?8|number 8|\bcm\b|midfielder/,"CM"],
+  [/centre\s?-?back|center\s?-?back|central defender|\bcb\b|defender/,"CB"],
+];
+const ASK_ATTR=[
+  [/dribbl\w*|take[- ]?ons?|carrier|carries|ball[- ]carrier/,["gpd"],"Dribbling"],
+  [/key pass\w*|chance creat\w*|creator|creative|creativity/,["kpp90","xap90"],"Chance creation"],
+  [/assist\w*/,["astp90","xap90"],"Assists"],
+  [/finish\w*|clinical|goalscor\w*|scorer|scoring|goals/,["gp90","gxg"],"Finishing"],
+  [/shot volume|shooter|shoots|shooting/,["shp90"],"Shot volume"],
+  [/progress\w*|progression|line[- ]break\w*/,["gpp"],"Ball progression"],
+  [/passing|passer|distribution|distributor/,["poe100","ppct"],"Passing quality"],
+  [/receiv\w*/,["gpr"],"Receiving"],
+  [/tackl\w*|ball[- ]?winn\w*/,["tkl90"],"Tackling"],
+  [/intercept\w*/,["intc90"],"Interceptions"],
+  [/\bdefend\w*|defensive(?! mid)/,["tip90","gpi"],"Defending"],
+  [/all[- ]?round\w*|complete/,["gp90r"],"All-round g+"],
+];
+const ASK_UNSUPPORTED=[[/aerial|head\w*/,"aerial data"],[/press\w*/,"pressing data"],[/speed|pace|quick/,"physical data"],[/work\s?rate|stamina/,"work-rate data"]];
+function parseAsk(q){
+  let s=" "+q.toLowerCase().replace(/[^a-z0-9 .-]/g," ")+" ";
+  const out={pos:new Set(),attrs:[],ageMax:null,ageMin:null,minMin:450,lg:"",chips:[],missing:[]};
+  if(/championship/.test(s)){out.lg="USLC";out.chips.push("USL Championship");}
+  else if(/league one|league 1/.test(s)){out.lg="USL1";out.chips.push("USL League One");}
+  let m=s.match(/under (\d{2})|\bu(\d{2})\b/); if(m){out.ageMax=+(m[1]||m[2])-(m[1]?1:0);out.chips.push("Age ≤ "+out.ageMax);}
+  else if(/young|prospect/.test(s)){out.ageMax=23;out.chips.push("Age ≤ 23");}
+  if(/veteran|experienced/.test(s)){out.ageMin=29;out.chips.push("Age ≥ 29");}
+  else if(/\bprime\b/.test(s)){out.ageMin=24;out.ageMax=28;out.chips.push("Age 24–28");}
+  m=s.match(/(?:at least|over|min(?:imum)?)\s+(\d{3,4})\s*(?:mins|minutes)/); if(m){out.minMin=+m[1];out.chips.push("≥ "+m[1]+" min");}
+  else if(/regular|starter/.test(s)){out.minMin=1500;out.chips.push("≥ 1500 min (regular)");}
+  const thr=/elite|\bbest\b|\btop\b/.test(s)?85:(/great|excellent|outstanding|very good/.test(s)?75:(/good|strong|solid/.test(s)?65:55));
+  ASK_POS.forEach(([re,p])=>{if(re.test(s)&&!out.pos.size)out.pos.add(p);});
+  if(out.pos.size)out.chips.unshift([...out.pos].join("/"));
+  ASK_ATTR.forEach(([re,keys,label])=>{if(re.test(s)){out.attrs.push({keys,label,thr});out.chips.push(label+" (≥"+thr+"th pct)");s=s.replace(new RegExp(re.source,"g")," ");}});
+  ASK_UNSUPPORTED.forEach(([re,what])=>{if(re.test(s))out.missing.push(what);});
+  return out;
+}
+function runAsk(q){
+  buildPools();
+  const p=parseAsk(q);
+  if(!p.attrs.length&&!p.pos.size) return {p,rows:null};
+  const lg=p.lg||state.league;
+  const scored=[];
+  DATA.forEach(r=>{
+    if(lg&&r[idx.lg]!==lg)return;
+    if(p.pos.size&&!p.pos.has(r[idx.pos])&&!p.pos.has(r[idx.pos2]))return;
+    if((r[idx.min]||0)<p.minMin)return;
+    const age=r[idx.age];
+    if(p.ageMax!=null&&(age==null||age>p.ageMax))return;
+    if(p.ageMin!=null&&(age==null||age<p.ageMin))return;
+    let sum=0,n=0,fail=false;const parts=[];
+    p.attrs.forEach(a=>{
+      let best=null;
+      a.keys.forEach(k=>{const pc=pctRank(r[idx.pos],k,r[idx[k]]);if(pc!=null&&(best==null||pc>best))best=pc;});
+      if(best==null||best<a.thr){fail=true;return;}
+      parts.push({label:a.label,pct:best});sum+=best;n++;
+    });
+    if(fail)return;
+    scored.push({r,score:n?sum/n:50,parts});
+  });
+  scored.sort((a,b)=>b.score-a.score);
+  return {p,rows:scored.slice(0,12)};
+}
+const ASK_EXAMPLES=["winger who's a good dribbler and key passer","elite young finisher in league one","ball-winning defensive midfielder under 23","centre-back who's a great passer","all-round attacking midfielder, regular starter"];
+function renderAsk(){
+  const host=document.getElementById("view-ask");
+  if(!host.dataset.built){
+    host.dataset.built="1";
+    host.innerHTML=`<div class="slwrap"><div class="askhero"><h3>Describe the player you're looking for</h3><div class="askrow"><input id="askq" type="text" placeholder="e.g. a winger who's a good dribbler and key passer" autocomplete="off"/><button class="btn" id="askgo">Search</button></div><div class="askex">${ASK_EXAMPLES.map(e=>`<button class="chip askexc">${e}</button>`).join("")}</div><div class="asknote">Understands positions · dribbling · creation · finishing · passing · progression · defending · age ("under 23", "young") · minutes · division. Ranked by positional percentiles; min. 450 minutes unless you say otherwise.</div></div><div id="askout"></div></div>`;
+    const go=()=>{state.askQ=document.getElementById("askq").value;renderAskResults();};
+    document.getElementById("askgo").onclick=go;
+    document.getElementById("askq").onkeydown=e=>{if(e.key==="Enter")go();};
+    host.querySelectorAll(".askexc").forEach(b=>b.onclick=()=>{document.getElementById("askq").value=b.textContent;go();});
+  }
+}
+function renderAskResults(){
+  const out=document.getElementById("askout"), q=(state.askQ||"").trim();
+  if(!q){out.innerHTML="";return;}
+  const {p,rows}=runAsk(q);
+  let h="";
+  if(rows===null){
+    out.innerHTML=`<div class="empty" style="display:block"><h3>I didn't catch a position or attribute in that</h3><p>Try wording like the examples above — e.g. "young striker, elite finisher".</p></div>`;return;
+  }
+  h+=`<div class="askint">Interpreted as: ${p.chips.map(c=>`<span class="chip on" style="cursor:default">${c}</span>`).join(" ")}${p.missing.length?`<span class="askmiss">No ${p.missing.join(", ")} in this dataset — ignored.</span>`:""}</div>`;
+  if(!rows.length){h+=`<div class="empty" style="display:block"><h3>Nobody clears that bar</h3><p>Lower the standard (drop "elite"), widen the age range, or remove a requirement.</p></div>`;out.innerHTML=h;return;}
+  h+=`<div class="askgrid">`+rows.map(({r,score,parts},i)=>{
+    const bars=parts.map(x=>`<div class="feat-bar"><div class="fb-top"><span class="fb-l">${x.label}</span><span class="fb-v">${Math.round(x.pct)}<sup>pct</sup></span></div><div class="fb"><i style="width:${x.pct}%;background:var(--pitch)"></i></div></div>`).join("");
+    return `<div class="askcard" data-pid="${r[idx.name]}|${r[idx.tm]}"><div class="askc-top"><span class="askrk">${i+1}</span>${crestBadge(r[idx.tm],30)}<div class="askc-n"><div class="askc-name">${r[idx.name]}</div><div class="askc-meta">${r[idx.pos]} · ${r[idx.team]} · age ${r[idx.age]??"?"} · ${r[idx.min]} min</div></div><span class="askscore">${Math.round(score)}</span></div>${bars}</div>`;
+  }).join("")+`</div>`;
+  out.innerHTML=h;
+  out.querySelectorAll(".askcard").forEach(c=>c.onclick=()=>{const a=c.dataset.pid.split("|");openProfile(DATA.find(r=>r[idx.name]===a[0]&&r[idx.tm]===a[1]));});
 }
 
 /* ===== RESULTS & FIXTURES (main page) ===== */

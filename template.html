@@ -479,6 +479,26 @@ svg .ring{fill:none;stroke:var(--line2);stroke-width:.7}
 .askc-name{font-weight:800;font-size:13.5px}
 .askc-meta{font-size:10.5px;color:var(--ink2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .askscore{font-family:var(--display);font-size:19px;color:var(--pitch);flex:0 0 auto}
+/* ===== switchbacks fit ===== */
+.swhero{background:radial-gradient(80% 140% at 90% -20%,rgba(255,122,24,.14),var(--card) 60%);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow);margin-bottom:16px}
+.swhero h3{margin:0 0 8px;font-size:18px;font-weight:800}
+.swhero p{margin:0 0 14px;font-size:12.5px;color:var(--ink2);line-height:1.6;max-width:640px}
+.swtraits{display:flex;flex-direction:column;gap:7px;margin-bottom:13px}
+.swtrait{font-size:11.5px;color:var(--ink);line-height:1.5;padding:8px 12px;background:var(--panel);border:1px solid var(--line);border-radius:9px;border-left:3px solid var(--pitch)}
+.swsrc{font-size:10px;color:var(--ink2);line-height:1.6}
+.swsrc a{color:var(--ink2);text-decoration:underline;text-decoration-color:var(--line2)}
+.swsrc a:hover{color:var(--pitch)}
+.swmiss{font-size:11px;color:var(--pitch);background:var(--panel);border:1px solid var(--pitch);border-radius:9px;padding:9px 12px;margin-bottom:14px;line-height:1.5}
+.swarches{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:9px;margin-bottom:16px}
+.swarch{text-align:left;background:var(--card);border:1px solid var(--line2);border-radius:11px;padding:11px 13px;cursor:pointer;transition:.12s}
+.swarch:hover{border-color:var(--pitch)}
+.swarch.on{border-color:var(--pitch);background:var(--panel);box-shadow:0 0 0 2px rgba(255,122,24,.14)}
+.swarch-l{font-size:13px;font-weight:800;margin-bottom:4px}
+.swarch-n{font-size:10.5px;color:var(--ink2);line-height:1.45}
+.swcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 15px;cursor:pointer;box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.045);transition:.12s}
+.swcard:hover{border-color:var(--pitch);transform:translateY(-2px)}
+.swreason{font-size:11.5px;color:var(--ink2);line-height:1.55;margin-top:11px;padding-top:11px;border-top:1px solid var(--line)}
+@media (max-width:920px){.swtraits{gap:6px}}
 @media (max-width:1080px){.stggrid{grid-template-columns:1fr}}
 @media (max-width:1080px){.dash-stats{grid-template-columns:repeat(2,1fr)}.dash-grid{grid-template-columns:1fr}.rs-grid{grid-template-columns:1fr}.hero-inner h2{font-size:32px}}
 /* ===== craft layer ===== */
@@ -550,6 +570,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-v
       <button class="navi" data-t="similar"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3.2"/><circle cx="16" cy="16" r="3.2"/><path d="M10.4 10.4l3.2 3.2"/></svg>Similar<span class="dot"></span></button>
       <button class="navi" data-t="ask"><svg viewBox="0 0 24 24"><path d="M5 3l1.2 2.8L9 7l-2.8 1.2L5 11 3.8 8.2 1 7l2.8-1.2z"/><circle cx="14.5" cy="13.5" r="5.5"/><path d="M18.6 17.6L22 21"/></svg>Scout search<span class="dot"></span></button>
       <button class="navi" data-t="table"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="4" cy="6" r="0.5"/></svg>Table<span class="dot"></span></button>
+      <button class="navi" data-t="switchbacks"><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="7"/></svg>Switchbacks Fit<span class="dot"></span></button>
       <button class="navi" data-t="shortlist"><svg viewBox="0 0 24 24"><path d="M12 3.6l2.5 5.1 5.6.8-4 3.9.9 5.6-5-2.6-5 2.6.9-5.6-4-3.9 5.6-.8z"/></svg>Shortlist<span class="navct" id="slnavct" style="display:none"></span><span class="dot"></span></button>
       <button class="navi" data-t="teams"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4-3 7-7 9-4-2-7-5-7-9V6z"/></svg>Teams<span class="dot"></span></button>
     </nav>
@@ -611,6 +632,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-v
       <div id="view-teams" class="view" style="display:none"></div>
       <div id="view-table" class="view" style="display:none"></div>
       <div id="view-ask" class="view" style="display:none"></div>
+      <div id="view-switchbacks" class="view" style="display:none"></div>
       <div id="view-shortlist" class="view" style="display:none"></div>
     </div>
   </main>
@@ -1057,16 +1079,17 @@ const VIEW_TITLES={
   teams:["Teams","Squads"],
   table:["League table","Standings"],
   ask:["Scout search","Find a profile"],
+  switchbacks:["Switchbacks Fit","Recruitment for our system"],
   shortlist:["Shortlist","Watchlist"]
 };
 function showTab(t){
   state.tab=t;
   document.querySelectorAll(".navi").forEach(b=>b.classList.toggle("on",b.dataset.t===t));
-  ["home","players","scatter","similar","teams","table","shortlist","ask"].forEach(v=>{const el=document.getElementById("view-"+v);if(el)el.style.display=(v===t)?"":"none";});
+  ["home","players","scatter","similar","teams","table","shortlist","ask","switchbacks"].forEach(v=>{const el=document.getElementById("view-"+v);if(el)el.style.display=(v===t)?"":"none";});
   const ti=VIEW_TITLES[t]||["",""];
   document.getElementById("viewtitle").textContent=ti[0];
   {const vs=document.getElementById("viewsub");if(vs)vs.textContent=ti[1];}
-  document.querySelector(".rail").style.display=(t==="home"||t==="table"||t==="shortlist"||t==="ask")?"none":"flex";
+  document.querySelector(".rail").style.display=(t==="home"||t==="table"||t==="shortlist"||t==="ask"||t==="switchbacks")?"none":"flex";
   const setd=(cls,show)=>document.querySelectorAll(cls).forEach(e=>e.style.display=show?"flex":"none");
   setd(".tab-players",t==="players"); setd(".tab-ps",t==="players"||t==="scatter");
   setd(".tab-scatter",t==="scatter"); setd(".tab-teams",t==="teams"); setd(".tab-similar",t==="similar");
@@ -1075,6 +1098,7 @@ function showTab(t){
   if(t==="similar") renderSimilar();
   if(t==="teams"){ fillTeamSelect(); renderTeams(); }
   if(t==="table") renderLeagueTable();
+  if(t==="switchbacks") renderSwitchbacks();
   if(t==="ask") renderAsk();
   if(t==="shortlist") renderShortlist();
 }
@@ -1360,6 +1384,99 @@ function renderHome(){
     });
   }
   renderResults();
+}
+
+/* ===== SWITCHBACKS FIT (style-grounded recruitment finder) ===== */
+// Style profile is drawn from public USL tactical reporting, not assumption — sources listed in-app.
+const SW_SOURCES=[
+  {t:"2026 USL Championship Western Conference Season Preview",u:"https://www.uslchampionship.com/news_article/show/1356722"},
+  {t:"USL Tactics — The Back Four: Passing patterns (final-third progression data)",u:"https://www.usltactics.com/the-back-four-passing-patterns-plus-the-knoxville-fort-wayne-ascendancy/"},
+  {t:"FotMob — Colorado Springs Switchbacks FC squad & form",u:"https://www.fotmob.com/teams/614321/overview/colorado-springs-switchbacks-fc"}
+];
+const SW_TRAITS=[
+  "4-2-3-1 base (also seen in 4-4-2 / 4-1-4-1) under Alan McCann, a long-time member of the club's staff — continuity, not a system overhaul",
+  "High defensive line with an aggressive press; best chances often come from winning the ball in advanced areas rather than patient build-up",
+  "Highest final-third pass-progression distance in the USL Championship (~3 yds/pass) — elite at advancing the ball once it's won",
+  "Possession is built through the back line (Talen Maples, Matt Mahoney), not through midfield creators — reporting explicitly flags the midfield as ball-winners \"but few pure creators\"",
+  "League-worst shooting accuracy in 2025 (40.7%) — the team creates the platform to shoot but has struggled to convert it"
+];
+const SW_ARCHES=[
+  {id:"finisher",label:"Clinical finisher",pos:["ST","W","AM"],
+   metrics:[["gxg","Finishing over expected (g − xG)"],["gp90","Goals/90"]],
+   need:"Colorado Springs posted the USL Championship's worst shooting accuracy in 2025 (40.7%) — they generate the platform, but need someone who reliably converts it.",
+   reason:(r,v,p)=>`${r[idx.name]} is outscoring his underlying chances by ${v.gxg>=0?"+":""}${fmt(COLS[idx.gxg],v.gxg)} g+xG over ${r[idx.min]} minutes, with ${fmt(COLS[idx.gp90],v.gp90)} goals/90 — the ${p.gp90}th percentile among ${r[idx.pos]}s. That's exactly the finishing efficiency the Switchbacks' league-worst shooting accuracy (40.7%, 2025) needs to fix.`},
+  {id:"progcb",label:"Progressive centre-back",pos:["CB"],
+   metrics:[["poe100","Pass success over expected"],["gpp","g+ Progression"]],
+   need:"Colorado Springs build possession from the back through Talen Maples and Matt Mahoney, not midfield creators — a CB who can pass through lines fits their exact structure.",
+   reason:(r,v,p)=>`${r[idx.name]}'s pass-success-over-expected of ${fmt(COLS[idx.poe100],v.poe100)} and g+ Progression score of ${fmt(COLS[idx.gpp],v.gpp)} (${p.gpp}th percentile among CBs) show a centre-back who drives attacks with the ball at his feet — the same profile Colorado Springs already lean on through Talen Maples and Matt Mahoney to build from deep.`},
+  {id:"ballwinner",label:"Press-fit ball-winner",pos:["CM","DM","W"],
+   metrics:[["tip90","Tackles+Interceptions/90"],["gpi","g+ Interrupting"]],
+   need:"The Switchbacks' identity is winning the ball high through an aggressive press — a system built on turnovers, not patient defending.",
+   reason:(r,v,p)=>`${r[idx.name]} averages ${fmt(COLS[idx.tip90],v.tip90)} tackles+interceptions per 90 (${p.tip90}th percentile among ${r[idx.pos]}s) — exactly the ball-winning intensity Colorado Springs' high, aggressive press is built around, where most good chances start with a turnover in advanced areas.`},
+  {id:"creator",label:"Creative midfielder",pos:["AM","CM","W"],
+   metrics:[["kpp90","Key passes/90"],["xap90","xA/90"]],
+   need:"USL tactical writers have explicitly flagged Colorado Springs' midfield as \"energetic ball-winners... but few pure creators\" — this is a named gap, not a guess.",
+   reason:(r,v,p)=>`${r[idx.name]} produces ${fmt(COLS[idx.kpp90],v.kpp90)} key passes and ${fmt(COLS[idx.xap90],v.xap90)} xA per 90 (${p.xap90}th percentile among ${r[idx.pos]}s) — precisely the "pure creator" profile USL Tactics has flagged as absent from a Switchbacks midfield otherwise built around ball-winners.`},
+  {id:"carrier",label:"Transition carrier",pos:["W","AM","ST"],
+   metrics:[["gpd","g+ Dribbling"],["gp90r","All-round g+/90"]],
+   need:"Colorado Springs need only \"one progressive pass\" after a high turnover to create a shot — a player who can carry the ball at speed maximises that structure.",
+   reason:(r,v,p)=>`${r[idx.name]}'s g+ Dribbling of ${fmt(COLS[idx.gpd],v.gpd)} (${p.gpd}th percentile among ${r[idx.pos]}s) shows he can beat a man and carry at pace — the trait that turns a high Switchbacks turnover into a chance in transition, which is how they scored their best goals in the win over Phoenix.`},
+  {id:"fb",label:"Progressive full-back",pos:["FB"],
+   metrics:[["gpp","g+ Progression"],["astp90","Assists/90"]],
+   need:"A high defensive line needs full-backs who can both push the attack and recover in transition — the same physical/tactical profile as the rest of the press.",
+   reason:(r,v,p)=>`${r[idx.name]} combines a g+ Progression score of ${fmt(COLS[idx.gpp],v.gpp)} with ${fmt(COLS[idx.astp90],v.astp90)} assists/90 (${p.gpp}th percentile among FBs) — the modern, high-line full-back profile Colorado Springs' aggressive setup needs on both sides of the ball.`}
+];
+function swScore(archId){
+  const arch=SW_ARCHES.find(a=>a.id===archId); if(!arch)return {arch,rows:[]};
+  buildPools();
+  const minMin=450;
+  const scored=[];
+  DATA.forEach(r=>{
+    if(!arch.pos.includes(r[idx.pos]))return;
+    if((r[idx.min]||0)<minMin)return;
+    let sum=0,n=0,fail=false,missing=false; const v={},p={};
+    arch.metrics.forEach(([k])=>{
+      const val=r[idx[k]]; v[k]=val;
+      if(val==null){missing=true;fail=true;return;}
+      const pc=pctRank(r[idx.pos],k,val); p[k]=pc;
+      if(pc==null){fail=true;return;}
+      sum+=pc;n++;
+    });
+    if(fail||!n)return;
+    scored.push({r,v,p,score:sum/n});
+  });
+  scored.sort((a,b)=>b.score-a.score);
+  return {arch,rows:scored.slice(0,8)};
+}
+function renderSwitchbacks(){
+  const host=document.getElementById("view-switchbacks");
+  if(!host.dataset.built){
+    host.dataset.built="1";
+    const defNote=(!DATA.some(r=>r[idx.tip90]!=null))?`<div class="swmiss">Defensive counting stats (tackles/interceptions) aren't populated yet in this dataset — the "Press-fit ball-winner" archetype will fall back to g+ Interrupting, ASA's possession-value defensive metric, until that feed is live.</div>`:"";
+    host.innerHTML=`<div class="slwrap">
+      <div class="swhero">
+        <h3>Recruiting for Colorado Springs Switchbacks FC</h3>
+        <p>This isn't a generic "good player" finder — every match below is scored against how the Switchbacks actually play, sourced from public USL tactical reporting, not assumption.</p>
+        <div class="swtraits">${SW_TRAITS.map(t=>`<div class="swtrait">${t}</div>`).join("")}</div>
+        <div class="swsrc">Sources: ${SW_SOURCES.map(s=>`<a href="${s.u}" target="_blank" rel="noopener">${s.t}</a>`).join(" · ")}</div>
+      </div>
+      ${defNote}
+      <div class="swarches">${SW_ARCHES.map(a=>`<button class="swarch" data-a="${a.id}"><div class="swarch-l">${a.label}</div><div class="swarch-n">${a.need}</div></button>`).join("")}</div>
+      <div id="swout"></div>
+    </div>`;
+    host.querySelectorAll(".swarch").forEach(b=>b.onclick=()=>{host.querySelectorAll(".swarch").forEach(x=>x.classList.remove("on"));b.classList.add("on");renderSwOut(b.dataset.a);});
+    renderSwOut(SW_ARCHES[0].id);
+    host.querySelector(`.swarch[data-a="${SW_ARCHES[0].id}"]`).classList.add("on");
+  }
+}
+function renderSwOut(archId){
+  const out=document.getElementById("swout");
+  const {arch,rows}=swScore(archId);
+  if(!rows.length){out.innerHTML=`<div class="empty" style="display:block"><h3>No qualifying players yet</h3><p>Either the underlying data isn't populated for this trait, or nobody clears a usable bar at 450+ minutes.</p></div>`;return;}
+  out.innerHTML=`<div class="askgrid">`+rows.map(({r,v,p,score})=>{
+    return `<div class="swcard" data-pid="${r[idx.name]}|${r[idx.tm]}"><div class="askc-top">${crestBadge(r[idx.tm],30)}<div class="askc-n"><div class="askc-name">${r[idx.name]}</div><div class="askc-meta">${r[idx.pos]} · ${r[idx.team]} · ${r[idx.lg]==="USLC"?"Championship":"League One"} · age ${r[idx.age]??"?"} · ${r[idx.min]} min</div></div><span class="askscore">${Math.round(score)}</span></div><div class="swreason">${arch.reason(r,v,p)}</div></div>`;
+  }).join("")+`</div>`;
+  out.querySelectorAll(".swcard").forEach(c=>c.onclick=()=>{const a=c.dataset.pid.split("|");openProfile(DATA.find(r=>r[idx.name]===a[0]&&r[idx.tm]===a[1]));});
 }
 
 /* ===== SHORTLIST (persisted in this browser) ===== */

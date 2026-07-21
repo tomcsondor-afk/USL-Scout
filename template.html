@@ -570,6 +570,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-v
       <button class="navi" data-t="similar"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3.2"/><circle cx="16" cy="16" r="3.2"/><path d="M10.4 10.4l3.2 3.2"/></svg>Similar<span class="dot"></span></button>
       <button class="navi" data-t="ask"><svg viewBox="0 0 24 24"><path d="M5 3l1.2 2.8L9 7l-2.8 1.2L5 11 3.8 8.2 1 7l2.8-1.2z"/><circle cx="14.5" cy="13.5" r="5.5"/><path d="M18.6 17.6L22 21"/></svg>Scout search<span class="dot"></span></button>
       <button class="navi" data-t="table"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="4" cy="6" r="0.5"/></svg>Table<span class="dot"></span></button>
+      <button class="navi" data-t="mlsnp"><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/><path d="M4.5 4.5l15 15M19.5 4.5l-15 15"/></svg>MLS Next Pro<span class="dot"></span></button>
       <button class="navi" data-t="switchbacks"><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="7"/></svg>Switchbacks Fit<span class="dot"></span></button>
       <button class="navi" data-t="shortlist"><svg viewBox="0 0 24 24"><path d="M12 3.6l2.5 5.1 5.6.8-4 3.9.9 5.6-5-2.6-5 2.6.9-5.6-4-3.9 5.6-.8z"/></svg>Shortlist<span class="navct" id="slnavct" style="display:none"></span><span class="dot"></span></button>
       <button class="navi" data-t="teams"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4-3 7-7 9-4-2-7-5-7-9V6z"/></svg>Teams<span class="dot"></span></button>
@@ -632,6 +633,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-v
       <div id="view-teams" class="view" style="display:none"></div>
       <div id="view-table" class="view" style="display:none"></div>
       <div id="view-ask" class="view" style="display:none"></div>
+      <div id="view-mlsnp" class="view" style="display:none"></div>
       <div id="view-switchbacks" class="view" style="display:none"></div>
       <div id="view-shortlist" class="view" style="display:none"></div>
     </div>
@@ -648,6 +650,7 @@ const GAMES = (typeof __GAMES__ === "undefined") ? [] : __GAMES__;
 const GAMES_SAMPLE = (typeof __GAMESSAMPLE__ === "undefined") ? false : __GAMESSAMPLE__;
 const DEF_SAMPLE = (typeof __DEFSAMPLE__ === "undefined") ? false : __DEFSAMPLE__;
 const CONF = (typeof __CONF__ === "undefined") ? {} : (__CONF__ || {});
+const MLSNP_DATA = (typeof __MLSNPDATA__ === "undefined") ? null : __MLSNPDATA__;
 const GAME_DETAIL = (typeof __GAMEDETAIL__ === "undefined") ? {} : __GAMEDETAIL__;
 </script>
 <script>
@@ -1079,17 +1082,18 @@ const VIEW_TITLES={
   teams:["Teams","Squads"],
   table:["League table","Standings"],
   ask:["Scout search","Find a profile"],
+  mlsnp:["MLS Next Pro","Feeder-league scouting"],
   switchbacks:["Switchbacks Fit","Recruitment for our system"],
   shortlist:["Shortlist","Watchlist"]
 };
 function showTab(t){
   state.tab=t;
   document.querySelectorAll(".navi").forEach(b=>b.classList.toggle("on",b.dataset.t===t));
-  ["home","players","scatter","similar","teams","table","shortlist","ask","switchbacks"].forEach(v=>{const el=document.getElementById("view-"+v);if(el)el.style.display=(v===t)?"":"none";});
+  ["home","players","scatter","similar","teams","table","shortlist","ask","switchbacks","mlsnp"].forEach(v=>{const el=document.getElementById("view-"+v);if(el)el.style.display=(v===t)?"":"none";});
   const ti=VIEW_TITLES[t]||["",""];
   document.getElementById("viewtitle").textContent=ti[0];
   {const vs=document.getElementById("viewsub");if(vs)vs.textContent=ti[1];}
-  document.querySelector(".rail").style.display=(t==="home"||t==="table"||t==="shortlist"||t==="ask"||t==="switchbacks")?"none":"flex";
+  document.querySelector(".rail").style.display=(t==="home"||t==="table"||t==="shortlist"||t==="ask"||t==="switchbacks"||t==="mlsnp")?"none":"flex";
   const setd=(cls,show)=>document.querySelectorAll(cls).forEach(e=>e.style.display=show?"flex":"none");
   setd(".tab-players",t==="players"); setd(".tab-ps",t==="players"||t==="scatter");
   setd(".tab-scatter",t==="scatter"); setd(".tab-teams",t==="teams"); setd(".tab-similar",t==="similar");
@@ -1099,6 +1103,7 @@ function showTab(t){
   if(t==="teams"){ fillTeamSelect(); renderTeams(); }
   if(t==="table") renderLeagueTable();
   if(t==="switchbacks") renderSwitchbacks();
+  if(t==="mlsnp") renderMlsnp();
   if(t==="ask") renderAsk();
   if(t==="shortlist") renderShortlist();
 }
@@ -1384,6 +1389,65 @@ function renderHome(){
     });
   }
   renderResults();
+}
+
+/* ===== MLS NEXT PRO (feeder-league browse — separate pool, own page) ===== */
+const MLSNP_POS=["CB","FB","DM","CM","AM","W","ST","GK"];
+const MLSNP_COLSHOW=["gp90","xgp90","astp90","xap90","kpp90","gap90","gp90r"];
+let mlsnpState={q:"",pos:new Set()};
+function mlsnpFiltered(){
+  if(!MLSNP_DATA)return [];
+  const s=mlsnpState.q.toLowerCase();
+  return MLSNP_DATA.filter(r=>{
+    if(s&&!String(r[idx.name]).toLowerCase().includes(s))return false;
+    if(mlsnpState.pos.size&&!mlsnpState.pos.has(r[idx.pos]))return false;
+    return true;
+  });
+}
+function renderMlsnp(){
+  const host=document.getElementById("view-mlsnp");
+  if(!host.dataset.built){
+    host.dataset.built="1";
+    if(!MLSNP_DATA){
+      host.innerHTML=`<div class="slwrap"><div class="swhero"><h3>MLS Next Pro</h3><p>MLS Next Pro is MLS's reserve-team league, one tier below MLS — a realistic pool for USL clubs, since MLSNP players are frequently released, loaned, or need first-team minutes a reserve league can't give them.</p></div>
+      <div class="empty" style="display:block"><h3>Not connected yet</h3><p>This dataset (American Soccer Analysis, league code <code>mlsnp</code>) isn't wired into the daily pipeline yet — the frontend is ready, the data pull just needs adding to <code>refresh.py</code>.</p></div></div>`;
+      return;
+    }
+    renderMlsnpBody();
+  }
+}
+function renderMlsnpBody(){
+  const host=document.getElementById("view-mlsnp");
+  host.innerHTML=`<div class="slwrap">
+    <div class="swhero"><h3>MLS Next Pro</h3><p>MLS's reserve-team league, one tier below MLS — a realistic recruitment pool, since MLSNP players are frequently released, loaned, or need first-team minutes a reserve league can't provide. Shown separately from USL: a different competition, its own percentile pool.</p></div>
+    <div class="rail" style="border:0;background:none;padding:0 0 14px;display:flex">
+      <div class="field"><label>Search</label><input id="mnq" type="text" placeholder="Name…"/></div>
+      <div class="field"><label>Position</label><div class="chips" id="mnpos">${MLSNP_POS.map(p=>`<span class="chip" data-p="${p}">${p}</span>`).join("")}</div></div>
+    </div>
+    <div id="mnout"></div>
+  </div>`;
+  document.getElementById("mnq").oninput=e=>{mlsnpState.q=e.target.value;mlsnpPaint();};
+  host.querySelectorAll("#mnpos .chip").forEach(c=>c.onclick=()=>{
+    const p=c.dataset.p; if(mlsnpState.pos.has(p))mlsnpState.pos.delete(p); else mlsnpState.pos.add(p);
+    c.classList.toggle("on"); mlsnpPaint();
+  });
+  mlsnpPaint();
+}
+function mlsnpPaint(){
+  const out=document.getElementById("mnout"); if(!out)return;
+  const rows=mlsnpFiltered().slice().sort((a,b)=>(b[idx.gp90r]||-99)-(a[idx.gp90r]||-99)).slice(0,150);
+  if(!rows.length){out.innerHTML=`<div class="empty" style="display:block"><h3>No players match</h3><p>Try clearing the search or position filter.</p></div>`;return;}
+  let h=`<div class="stgwrap"><table class="stg"><thead><tr><th class="txt" style="text-align:left">Player</th><th class="txt" style="text-align:left">Club</th><th class="txt" style="text-align:left">Pos</th><th>Min</th>${MLSNP_COLSHOW.map(k=>`<th>${COLS[idx[k]].label}</th>`).join("")}</tr></thead><tbody>`;
+  rows.forEach(r=>{
+    h+=`<tr><td class="txt club"><span class="stgname" data-pid="${r[idx.name]}|${r[idx.tm]}">${r[idx.name]}</span></td><td class="txt">${r[idx.team]}</td><td class="txt">${r[idx.pos]}</td><td>${r[idx.min]}</td>${MLSNP_COLSHOW.map(k=>`<td>${fmt(COLS[idx[k]],r[idx[k]])}</td>`).join("")}</tr>`;
+  });
+  h+=`</tbody></table></div><div class="stgnote">No percentile ranking shown — MLS Next Pro is its own competition and pool, kept separate from USL comparisons to avoid mixing levels.</div>`;
+  out.innerHTML=h;
+  out.querySelectorAll(".stgname").forEach(n=>n.onclick=()=>{
+    const a=n.dataset.pid.split("|");
+    const r=MLSNP_DATA.find(x=>x[idx.name]===a[0]&&x[idx.tm]===a[1]);
+    if(r) window.alert(`${r[idx.name]} — full profile view for MLS Next Pro players isn't built yet (percentile pools are USL-only for now). Raw stats are in the table.`);
+  });
 }
 
 /* ===== SWITCHBACKS FIT (style-grounded recruitment finder) ===== */

@@ -23,9 +23,9 @@ def note(m):
 print(f"Pulling American Soccer Analysis data — season {SEASON}, leagues {LEAGUES}")
 client = AmericanSoccerAnalysis()
 
-def get(method, **kw):
+def get(method, leagues=None, **kw):
     try:
-        df = getattr(client, method)(leagues=LEAGUES, **kw)
+        df = getattr(client, method)(leagues=(leagues or LEAGUES), **kw)
         return df if isinstance(df, pd.DataFrame) else pd.DataFrame()
     except Exception as e:
         note(f"{method} failed: {e}")
@@ -364,6 +364,114 @@ note(f"Defensive stats matched to {def_matched}/{len(full)} players (Sofascore o
 cols_js = [{"key": k, "label": l, "group": g, "role": ro, "fmt": f, "hib": h, "pizza": p}
            for (k, l, g, ro, f, h, p) in cfg]
 
+# ---------- MLS NEXT PRO (separate feeder-league pool — own page, not merged into USL) ----------
+# Self-contained on purpose: if anything here fails, the main USL dashboard still builds fine.
+MLSNP_ROWS = []
+try:
+    mnp_xg = get("get_player_xgoals", leagues=["mlsnp"], season_name=SEASON, split_by_teams=True)
+    if mnp_xg.empty:
+        note("MLS Next Pro: no xGoals rows returned (season may not have data yet).")
+    else:
+        mnp_xp = get("get_player_xpass", leagues=["mlsnp"], season_name=SEASON, split_by_teams=True)
+        mnp_ga = get("get_player_goals_added", leagues=["mlsnp"], season_name=SEASON, split_by_teams=True)
+        mnp_players = get("get_players", leagues=["mlsnp"])
+        mnp_teams   = get("get_teams", leagues=["mlsnp"])
+
+        mnp_team_full, mnp_team_abbr = {}, {}
+        for _, r in mnp_teams.iterrows():
+            mnp_team_full[r["team_id"]] = r.get("team_name")
+            mnp_team_abbr[r["team_id"]] = r.get("team_abbreviation")
+
+        mnp_pmeta = {}
+        for _, r in mnp_players.iterrows():
+            mnp_pmeta[r.get("player_id")] = {
+                "player_name": r.get("player_name"),
+                "birth_date": r.get("birth_date"),
+                "secondary_general_position": r.get("secondary_general_position"),
+            }
+
+        mnp_df = mnp_xg.copy()
+        if not mnp_xp.empty:
+            keep = ["player_id", "team_id"] + [c for c in xp_cols if c in mnp_xp.columns]
+            mnp_df = mnp_df.merge(mnp_xp[keep], on=["player_id", "team_id"], how="left")
+
+        mnp_ga_map = {}
+        if not mnp_ga.empty and "data" in mnp_ga.columns:
+            for _, r in mnp_ga.iterrows():
+                key = (r["player_id"], r.get("team_id"))
+                rec = {}
+                for a in r["data"] if isinstance(r["data"], list) else []:
+                    k = a.get("action_type", "").lower()
+                    rec[f"ga_raw_{k}"]      = a.get("goals_added_raw")
+                    rec[f"ga_aboveavg_{k}"] = a.get("goals_added_above_avg")
+                mnp_ga_map[key] = rec
+
+        def mnp_gaval(pid, tid, field):
+            return mnp_ga_map.get((pid, tid), {}).get(field, np.nan)
+
+        for _, r in mnp_df.iterrows():
+            pid, tid = r["player_id"], r.get("team_id")
+            pm = mnp_pmeta.get(pid, {})
+            mins = num(r.get("minutes_played"))
+            gak = {}
+            for a in ACTIONS:
+                k = a.lower()
+                gak[f"ga_raw_{k}"]      = mnp_gaval(pid, tid, f"ga_raw_{k}")
+                gak[f"ga_aboveavg_{k}"] = mnp_gaval(pid, tid, f"ga_aboveavg_{k}")
+            raws = [gak[f"ga_raw_{a.lower()}"] for a in ACTIONS]
+            aavs = [gak[f"ga_aboveavg_{a.lower()}"] for a in ACTIONS]
+            ga_raw_total = np.nansum(raws) if any(pd.notna(x) for x in raws) else np.nan
+            ga_aa_total  = np.nansum(aavs) if any(pd.notna(x) for x in aavs) else np.nan
+
+            bd = pm.get("birth_date")
+            age = np.nan
+            if isinstance(bd, str) and len(bd) >= 4 and bd[:4].isdigit():
+                age = yr - int(bd[:4])
+
+            goals = num(r.get("goals")); shots = num(r.get("shots"))
+            ast = num(r.get("primary_assists"))
+
+            mnp_src_row = {
+                "player_name": pm.get("player_name"),
+                "team_abbreviation": mnp_team_abbr.get(tid), "team_name": mnp_team_full.get(tid),
+                "general_position": r.get("general_position"), "secondary_general_position": pm.get("secondary_general_position"),
+                "age_at_season": age, "nationality": None,
+                "minutes_played": mins, "count_games": num(r.get("count_games")), "height": None, "weight_lb": None,
+                "shots": shots, "shots_on_target": num(r.get("shots_on_target")),
+                "goals": goals, "xgoals": num(r.get("xgoals")), "goals_minus_xgoals": num(r.get("goals_minus_xgoals")),
+                "goals_per_shot": safe_div(goals, shots), "xgoals_per_shot": safe_div(r.get("xgoals"), shots),
+                "shots_p90": per90(shots, mins), "shots_on_target_p90": per90(r.get("shots_on_target"), mins),
+                "goals_p90": per90(goals, mins), "xgoals_p90": per90(r.get("xgoals"), mins),
+                "key_passes": num(r.get("key_passes")), "primary_assists": ast, "xassists": num(r.get("xassists")),
+                "primary_assists_minus_xassists": num(r.get("primary_assists_minus_xassists")),
+                "key_passes_p90": per90(r.get("key_passes"), mins),
+                "primary_assists_p90": per90(ast, mins), "xassists_p90": per90(r.get("xassists"), mins),
+                "goals_plus_primary_assists": num(r.get("goals_plus_primary_assists")),
+                "xgoals_plus_xassists": num(r.get("xgoals_plus_xassists")),
+                "goals_plus_assists_p90": per90(r.get("goals_plus_primary_assists"), mins),
+                "xgoals_plus_xassists_p90": per90(r.get("xgoals_plus_xassists"), mins),
+                "points_added": num(r.get("points_added")), "xpoints_added": num(r.get("xpoints_added")),
+                "attempted_passes": num(r.get("attempted_passes")),
+                "pass_completion_percentage": num(r.get("pass_completion_percentage")),
+                "xpass_completion_percentage": num(r.get("xpass_completion_percentage")),
+                "passes_completed_over_expected": num(r.get("passes_completed_over_expected")),
+                "passes_completed_over_expected_p100": num(r.get("passes_completed_over_expected_p100")),
+                "avg_distance_yds": num(r.get("avg_distance_yds")), "avg_vertical_distance_yds": num(r.get("avg_vertical_distance_yds")),
+                "share_team_touches": num(r.get("share_team_touches")),
+                "ga_raw_total": ga_raw_total, "ga_aboveavg_total": ga_aa_total,
+                "goals_added_raw_p90": per90(ga_raw_total, mins),
+                **{k: num(v) for k, v in gak.items()},
+            }
+            rec = []
+            for key, label, grp, role, fmt, hib, piz in cfg:
+                if key == "lg": rec.append("MLSNP"); continue
+                if key in DEF_KEYS: rec.append(None); continue  # no defensive counting stats for MLSNP yet
+                rec.append(fmt_fn[fmt](mnp_src_row.get(src[key])))
+            MLSNP_ROWS.append(rec)
+        note(f"MLS Next Pro: {len(MLSNP_ROWS)} player rows pulled (season {SEASON}).")
+except Exception as e:
+    note(f"MLS Next Pro pull failed (main USL dashboard is unaffected): {e}")
+
 # ---- results & fixtures (games) ----
 GAMES = []
 # league per club from THIS season's rosters (authoritative; ASA team lists include historical members)
@@ -414,12 +522,13 @@ out = (template
        .replace("__DATA__", json.dumps(data_rows, separators=(",", ":")))
        .replace("__GAMES__", json.dumps(GAMES, separators=(",", ":")))
        .replace("__CONF__", json.dumps(CONF_MAP, separators=(",", ":")))
+       .replace("__MLSNPDATA__", json.dumps(MLSNP_ROWS, separators=(",", ":")) if MLSNP_ROWS else "null")
        .replace("__GAMESSAMPLE__", "false")
        .replace("__DEFSAMPLE__", "false"))
 open("index.html", "w", encoding="utf-8").write(out)
 
 stamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 open("build_report.txt", "w").write(
-    f"Last rebuild: {stamp}\nSeason: {SEASON}\nPlayers: {len(full)}\n" +
+    f"Last rebuild: {stamp}\nSeason: {SEASON}\nPlayers: {len(full)}\nMLS Next Pro players: {len(MLSNP_ROWS)}\n" +
     ("\nNotes:\n- " + "\n- ".join(notes) if notes else "\nNo warnings."))
 print(f"\nBuilt index.html — {len(full)} players, season {SEASON}, {stamp}")
